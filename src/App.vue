@@ -24,7 +24,7 @@ export default {
 
         overflow-x: hidden; /* 隐藏底部滑动条 */
     }
-    #bg{
+    #bg {
         background: url("assets/img/bg.jpg") center center no-repeat;
         width:100%;
         height:100%;

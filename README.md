@@ -49,6 +49,27 @@ Vue.prototype.$md5 = md5
 
 # 使用
 this.$md5()
+
+# 安装头像插件
+npm install vue-avatar
+
+# 引入
+import Avatar from 'vue-avatar'
+export default {
+    name:'name',
+    components:{
+        Avatar
+    },
+}
+<Avatar :username="userInfo.name"
+        :src="userInfo.avatar"
+        background-color="#ccc"
+        color="#fff"
+        style=" vertical-align: middle;"
+        :inline="true">
+</Avatar>
+
+
 ```
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
