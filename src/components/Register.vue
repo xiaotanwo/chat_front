@@ -10,7 +10,7 @@
 
         <el-row :gutter="20">
             <el-col :span="8" :offset="8">
-                <div class="grid-content">
+                <div class="grid-content" style="opacity: 0.9">
                     <!-- 扩展上边界 -->
                     <el-row :gutter="20">
                         <el-col :span="8" :offset="8">
@@ -32,7 +32,7 @@
                     <el-row :gutter="20">
                         <el-col :span="14" :offset="5">
                             <div>
-                                <el-input placeholder="请输入昵称" v-model="input_name"
+                                <el-input placeholder="请输入昵称" v-model="input_name" clearable
                                 @keydown.enter.native="toRegister">
                                 </el-input>
                             </div>
@@ -131,6 +131,7 @@
                     }
                 ).then((res)=>{
                     if (res.data.ret) {
+                        this.alertSuccess("注册成功！");
                         this.$router.replace({
                             path: "/chat",
                             query: {

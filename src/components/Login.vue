@@ -10,7 +10,7 @@
 
         <el-row :gutter="20">
             <el-col :span="8" :offset="8">
-                <div class="grid-content">
+                <div class="grid-content" style="opacity: 0.9">
                     <!-- 扩展上边界 -->
                     <el-row :gutter="20">
                         <el-col :span="8" :offset="8">
@@ -117,6 +117,7 @@
                     }
                 ).then((res)=>{
                     if (res.data.ret) {
+                        this.alertSuccess("登录成功！")
                         this.$router.replace({
                             path: "/chat",
                             query: {

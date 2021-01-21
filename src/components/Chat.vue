@@ -24,16 +24,22 @@
                             </el-dropdown>
                         </el-header>
                         
-                        <el-main style="margin: 5px 0; padding: 0 0 0 10px;">
-                            <el-table :data="tableData">
-                                <el-table-column prop="date" label="日期" width="140">
-                                </el-table-column>
-                                <el-table-column prop="name" label="姓名" width="120">
-                                </el-table-column>
-                                <el-table-column prop="address" label="地址">
-                                </el-table-column>
-                            </el-table>
+                        <el-main style="margin: 5px 0; padding: 0 0 0 10px; width: 1100px">
                         </el-main>
+
+                        <el-footer style="height: 130px; padding: 5px 0 0 10px;">
+                            <el-input
+                                style="background-color: #000"
+                                maxlength=300
+                                @keyup.native="toSend($event)"
+                                @keydown.shift.native="downshift"
+                                resize="none"
+                                type="textarea"
+                                :rows="5"
+                                placeholder="请输入聊天内容。 Enter 发送，Shift + Enter 换行"
+                                v-model="chat_text">
+                            </el-input>
+                        </el-footer>
                     </el-container>
 
                     <el-container style="height: 100%; width: 250px">
@@ -57,7 +63,6 @@
                                     style="text-align: left; border-right: 0">
                                     <el-submenu index="1">
                                         <template slot="title">
-                                            <!-- <i class="el-icon-location"></i> -->
                                             <span>聊天室</span>
                                         </template>
                                         <el-menu-item index="1-1">北京</el-menu-item>
@@ -67,7 +72,6 @@
                                     </el-submenu>
                                     <el-submenu index="2">
                                         <template slot="title">
-                                            <!-- <i class="el-icon-location"></i> -->
                                             <span>群聊</span>
                                         </template>
                                         <el-menu-item index="1-1" style="color: #67C23A">新建群聊</el-menu-item>
@@ -76,7 +80,6 @@
                                     </el-submenu>
                                     <el-submenu index="3">
                                         <template slot="title">
-                                            <!-- <i class="el-icon-location"></i> -->
                                             <span>好友</span>
                                         </template>
                                         <el-menu-item index="1-1" style="color: #67C23A">添加好友</el-menu-item>
@@ -87,7 +90,7 @@
                             </el-col>
                         </el-main>
                         <el-footer style="padding-top: 10px">
-                            <el-button type="danger" round>退出</el-button>
+                            <el-button type="danger" round @click="logout">退出</el-button>
                         </el-footer>
                     </el-container>
                 </el-container>
@@ -96,8 +99,6 @@
 
     </div>
 </template>
-
-.element::-webkit-scrollbar {display:none}
 
 <script>
     import Avatar from 'vue-avatar'
@@ -110,16 +111,79 @@
             this.headname = this.username[0] + ' ' + this.username[1];
         },
         data() {
-            const item = {
-                date: '2016-05-02',
-                name: '王小虎',
-                address: '上海市普陀区金沙江路 1518 弄'
-            };
             return {
-                tableData: Array(20).fill(item),
                 username: '',
                 headname: '',
+                chat_text: '',
+                shift_flag: false,
             }
+        },
+        methods: {
+            // 注销
+            logout() {
+                this.$http.post(
+                    "http://localhost/user/logout"
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.alertSuccess(res.data.msg);
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                    this.$router.replace("/login")
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
+            },
+
+            // 聊天室的操作
+            handleCommand(command) {
+                if (command == 'quit') {
+                    this.alertSuccess("退出聊天室成功！");
+                } else if (command == 'delete') {
+                    this.alertSuccess("删除聊天室成功！");
+                }
+            },
+
+            // 发送聊天信息
+            toSend(event) {
+                // 监听回车事件
+                if (!this.shift_flag && event.keyCode == 13) {
+                    this.chat_text = this.chat_text.trim();
+                    if (this.chat_text == '') {
+                        this.alertError("聊天信息不嫩为空！");
+                        return;
+                    }
+                    this.alertSuccess("发送成功！");
+                    this.chat_text = '';
+                } else if (event.keyCode == 16) {
+                    this.shift_flag = false;
+                }
+            },
+
+            // 设置shift标志
+            downshift() {
+                this.shift_flag = true;
+            },
+
+            // 输出错误提示
+            alertError(msg) {
+                this.$message.error(
+                    {
+                        message: msg,
+                        center: true,
+                    }
+                );
+            },
+
+            // 输出正确提示
+            alertSuccess(msg) {
+                this.$message.success(
+                    {
+                        message: msg,
+                        center: true,
+                    }
+                );
+            },
         },
     };
 </script>
@@ -155,10 +219,5 @@
   .el-header {
     color: #ffffff;
     line-height: 60px;
-  }
-
-  /* chrome浏览器隐藏滑动条，其他的浏览器就算了，前端从入门到放弃 */
-  .el-main::-webkit-scrollbar {
-    display: none;
   }
 </style>
