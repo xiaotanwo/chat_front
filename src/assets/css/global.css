@@ -38,3 +38,10 @@
     /* 设置文字颜色 */
     color: #fff;
 }
+
+/* 设置下拉菜单的样式 */
+.el-popper .popper__arrow {
+    border-bottom-color: #1EBEF4 !important;
+    left: 50% !important;
+    visibility: hidden;
+}

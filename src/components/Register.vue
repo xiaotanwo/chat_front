@@ -106,6 +106,11 @@
 
             // 注册
             toRegister() {
+                // 去除首尾空格
+                this.input_name = this.input_name.trim();
+                this.input_password = this.input_password.trim();
+                this.input_password_second = this.input_password_second.trim();
+
                 // 验证
                 if(!this.trueName(this.input_name)) {
                     this.alertError("昵称长度只允许2至10位!")
