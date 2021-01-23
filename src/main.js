@@ -20,8 +20,8 @@ axios.defaults.withCredentials = true;  //允许axios请求携带cookie等凭证
 import md5 from 'js-md5'
 Vue.prototype.$md5 = md5
 
-// 引入公共样式
-import './assets/css/global.css' 
+// 引入公共css
+import './assets/css/global.css'
 
 /* eslint-disable no-new */
 new Vue({

@@ -67,6 +67,7 @@
                                         </template>
                                         <el-menu-item style="color: #67C23A" @click="addFriendDialogVisible = true">添加好友</el-menu-item>
                                         <el-menu-item style="color: #67C23A" @click="friendApplyDialogVisible = true">好友申请</el-menu-item>
+                                        <el-menu-item style="color: #67C23A" @click="friendDialogVisible = true">好友列表</el-menu-item>
                                         <el-menu-item 
                                             :index="('3-' + index)"
                                             v-for="(item,index) in friendList" :key="index"
@@ -86,9 +87,9 @@
                     <el-container style="width: 90%">
                         <!-- 聊天室名称 -->
                         <el-header style="text-align: center;">
-                            <el-dropdown @command="handleCommand">
+                            <el-dropdown @command="handleCommand" style="heigth: 10px">
                                 <span class="el-dropdown-link" style="color: #67C23A; font-size: 20px;">
-                                    {{chatTitle}}<i class="el-icon-arrow-down el-icon--right" style=""></i>
+                                    {{chatTitle}}<i class="el-icon-arrow-down el-icon--right"></i>
                                 </span>
                                 <el-dropdown-menu slot="dropdown">
                                     <el-dropdown-item icon="el-icon-error" command="close" style="color: #67C23A">关闭</el-dropdown-item>
@@ -104,7 +105,6 @@
                         <!-- 发送框 -->
                         <el-footer style="height: 130px; padding: 5px 10px;">
                             <el-input
-                                style="background-color: #000"
                                 maxlength=300
                                 @keyup.native="toSend($event)"
                                 @keydown.shift.native="downshift"
@@ -120,49 +120,100 @@
             </el-col>
         </el-row>
 
-        <!-- 弹窗 -->
+        <!-- 添加好友页面 -->
         <el-dialog
-            title="添加好友弹窗"
+            title="添加好友"
             :visible.sync="addFriendDialogVisible"
-            width="30%"
-            :before-close="handleClose">
-            <span>这是一段信息</span>
+            width="400px"
+            top="200px"
+            :close-on-click-modal=false
+            :show-close=false
+            center>
+            <el-form :model="addFriendForm">
+                <el-form-item label="好友名称：" :label-width="formLabelWidth">
+                    <el-input v-model="addFriendForm.applyName" autocomplete="off" placeholder="请输入对方名称"></el-input>
+                </el-form-item>
+                <el-form-item label="申请信息：" :label-width="formLabelWidth">
+                    <el-input v-model="addFriendForm.msg" autocomplete="off" placeholder="请输入申请消息"></el-input>
+                </el-form-item>
+            </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="addFriendDialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="addFriendDialogVisible = false">确 定</el-button>
+                <el-button type="danger" @click="addFriendClose">关 闭</el-button>
+                <el-button type="primary" @click="addFriend">申 请</el-button>
             </span>
         </el-dialog>
+
+        <!-- 好友申请页面 -->
         <el-dialog
-            title="好友申请弹窗"
+            title="好友申请列表"
             :visible.sync="friendApplyDialogVisible"
-            width="30%"
-            :before-close="handleClose">
+            width="600px"
+            top="200px"
+            center>
             <span>这是一段信息</span>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="friendApplyDialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="friendApplyDialogVisible = false">确 定</el-button>
-            </span>
         </el-dialog>
+        
+        <!-- 好友列表 -->
         <el-dialog
-            title="新建群聊弹窗"
+            title="好友列表"
+            :visible.sync="friendDialogVisible"
+            width="600px"
+            top="200px"
+            center>
+            <span>这是一段信息</span>
+        </el-dialog>
+
+        <!-- 新建群聊页面 -->
+        <el-dialog
+            title="新建群聊"
             :visible.sync="newGroupDialogVisible"
-            width="30%"
-            :before-close="handleClose">
-            <span>这是一段信息</span>
+            width="400px"
+            top="200px"
+            :close-on-click-modal=false
+            :show-close=false
+            center>
+            <el-form :model="newGroupForm">
+                <el-form-item label="群聊名称：" :label-width="formLabelWidth">
+                    <el-input v-model="newGroupForm.name" autocomplete="off" placeholder="请输入群聊名称"></el-input>
+                </el-form-item>
+                <el-form-item label="群聊密码：" :label-width="formLabelWidth">
+                    <el-input v-model="newGroupForm.password"
+                              autocomplete="off"
+                              placeholder="请输入群聊密码"
+                              show-password>
+                    </el-input>
+                </el-form-item>
+            </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="newGroupDialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="newGroupDialogVisible = false">确 定</el-button>
+                <el-button type="danger" @click="newGroupClose">关 闭</el-button>
+                <el-button type="primary" @click="newGroup">新 建</el-button>
             </span>
         </el-dialog>
+
+        <!-- 加入群聊页面 -->
         <el-dialog
-            title="加入群聊弹窗"
+            title="加入群聊"
             :visible.sync="joinGroupDialogVisible"
-            width="30%"
-            :before-close="handleClose">
-            <span>这是一段信息</span>
+            width="400px"
+            top="200px"
+            :close-on-click-modal=false
+            :show-close=false
+            center>
+            <el-form :model="joinGroupForm">
+                <el-form-item label="群聊名称：" :label-width="formLabelWidth">
+                    <el-input v-model="joinGroupForm.name" autocomplete="off" placeholder="请输入群聊名称"></el-input>
+                </el-form-item>
+                <el-form-item label="群聊密码：" :label-width="formLabelWidth">
+                    <el-input v-model="joinGroupForm.password"
+                              autocomplete="off"
+                              placeholder="请输入群聊密码"
+                              show-password>
+                    </el-input>
+                </el-form-item>
+            </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="joinGroupDialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="joinGroupDialogVisible = false">确 定</el-button>
+                <el-button type="danger" @click="joinGroupClose">关 闭</el-button>
+                <el-button type="primary" @click="joinGroup">加 入</el-button>
             </span>
         </el-dialog>
     </div>
@@ -202,21 +253,29 @@
                     "广州",
                     "深圳",
                 ],
+                
                 addFriendDialogVisible: false,
                 friendApplyDialogVisible: false,
                 newGroupDialogVisible: false,
                 joinGroupDialogVisible: false,
+                friendDialogVisible: false,
+                
+                addFriendForm: {
+                    applyName: '',
+                    msg: '',
+                },
+                newGroupForm: {
+                    name: '',
+                    password: '',
+                },
+                joinGroupForm: {
+                    name: '',
+                    password: '',
+                },
+                formLabelWidth: '120px',
             }
         },
         methods: {
-            // 弹窗
-            handleClose(done) {
-                this.$confirm('确认关闭？')
-                .then(_ => {
-                    done();
-                })
-                .catch(_ => {});
-            },
             // 注销
             logout() {
                 this.$http.post(
@@ -231,6 +290,73 @@
                 }).catch((res) => {
                     this.alertError("网络出现故障，请稍后再尝试！");
                 });
+            },
+
+            // 添加好友
+            addFriend() {
+                // 去除首尾的空格
+                this.addFriendForm.applyName = this.addFriendForm.applyName.trim();
+                this.addFriendForm.msg = this.addFriendForm.msg.trim();
+                
+                // 初步验证名称的正确性
+                if (!this.trueName(this.addFriendForm.applyName)) {
+                    this.alertError("名称长度在2至10位!");
+                    return;
+                }
+                // 限制申请信息的长度为50
+                if (this.addFriendForm.msg.length > 50) {
+                    this.alertError("申请信息长度不能超过50!");
+                    return;
+                }
+                
+                this.$http.post(
+                    "http://localhost/friendApply/add",
+                    {
+                        applyName: this.addFriendForm.applyName,
+                        msg: this.addFriendForm.msg,
+                    }
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.alertSuccess(res.data.msg);
+                        this.addFriendForm.applyName = '';
+                        this.addFriendForm.msg = '';
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
+            },
+
+            // 关闭添加好友页面
+            addFriendClose() {
+                this.addFriendDialogVisible = false;
+                this.addFriendForm.applyName = '';
+                this.addFriendForm.msg = '';
+            },
+
+            // 新建群聊
+            newGroup() {
+                this.alertSuccess("新建成功!");
+            },
+
+            // 关闭新建群聊页面
+            newGroupClose() {
+                this.newGroupDialogVisible = false;
+                this.newGroupForm.name = '';
+                this.newGroupForm.password = '';
+            },
+
+            // 加入群聊
+            joinGroup() {
+                this.alertSuccess("加入成功!");
+            },
+
+            // 关闭加入群聊页面
+            joinGroupClose() {
+                this.joinGroupDialogVisible = false;
+                this.joinGroupForm.name = '';
+                this.joinGroupForm.password = '';
             },
 
             // 聊天室内的操作
@@ -282,6 +408,16 @@
                 this.shift_flag = true;
             },
 
+            // 判断昵称正确性
+            trueName(name) {
+                return name.length >= 2 && name.length <= 10;
+            },
+
+            // 判断密码正确性
+            truePassword(password) {
+                return password.length >= 6 && password.length <= 18;
+            },
+
             // 输出错误提示
             alertError(msg) {
                 this.$message.error(
@@ -304,50 +440,3 @@
         },
     };
 </script>
-
-<style>
-  .el-row {
-    margin-bottom: 20px;
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-  .el-col {
-    border-radius: 4px;
-  }
-  .bg-purple-dark {
-    background: #99a9bf;
-  }
-  .bg-purple {
-    background: #d3dce6;
-  }
-  .bg-purple-light {
-    background: #e5e9f2;
-  }
-  .grid-content {
-    border-radius: 4px;
-    min-height: 36px;
-  }
-  .row-bg {
-    padding: 10px 0;
-    background-color: #f9fafc;
-  }
-
-  .el-header {
-    color: #ffffff;
-    line-height: 60px;
-  }
-
-  .el-dropdown-menu {
-    background: transparent;
-    background-color: #2C3E50;
-    border-color: transparent;
-    border: 1px solid transparent;
-  }
-
-  .el-dropdown-menu__item:not(.is-disabled):hover{
-    background-color: #909399 !important;
-    color: #333333 !important;
-  }
-
-</style>
