@@ -66,8 +66,8 @@
                                             <span>好友</span>
                                         </template>
                                         <el-menu-item style="color: #67C23A" @click="addFriendDialogVisible = true">添加好友</el-menu-item>
-                                        <el-menu-item style="color: #67C23A" @click="friendApplyDialogVisible = true">好友申请</el-menu-item>
-                                        <el-menu-item style="color: #67C23A" @click="friendDialogVisible = true">好友列表</el-menu-item>
+                                        <el-menu-item style="color: #67C23A" @click="friendApply">好友申请</el-menu-item>
+                                        <el-menu-item style="color: #67C23A" @click="friends">好友列表</el-menu-item>
                                         <el-menu-item 
                                             :index="('3-' + index)"
                                             v-for="(item,index) in friendList" :key="index"
@@ -84,16 +84,16 @@
                         </el-footer>
                     </el-container>
 
-                    <el-container style="width: 90%">
+                    <el-container style="width: 85%">
                         <!-- 聊天室名称 -->
                         <el-header style="text-align: center;">
-                            <el-dropdown @command="handleCommand" style="heigth: 10px">
+                            <el-dropdown @command="handleCommand">
                                 <span class="el-dropdown-link" style="color: #67C23A; font-size: 20px;">
                                     {{chatTitle}}<i class="el-icon-arrow-down el-icon--right"></i>
                                 </span>
                                 <el-dropdown-menu slot="dropdown">
                                     <el-dropdown-item icon="el-icon-error" command="close" style="color: #67C23A">关闭</el-dropdown-item>
-                                    <el-dropdown-item icon="el-icon-delete-solid" command="delete" style="color: #67C23A">退出</el-dropdown-item>
+                                    <el-dropdown-item icon="el-icon-delete-solid" command="delete" style="color: #67C23A">删除</el-dropdown-item>
                                 </el-dropdown-menu>
                             </el-dropdown>
                         </el-header>
@@ -147,20 +147,45 @@
         <el-dialog
             title="好友申请列表"
             :visible.sync="friendApplyDialogVisible"
-            width="600px"
+            width="700px"
             top="200px"
             center>
-            <span>这是一段信息</span>
+            <el-table :data="friendApplyTableData">
+                <el-table-column prop="name" label="用户" width="160">
+                </el-table-column>
+                <el-table-column prop="msg" label="申请信息">
+                </el-table-column>
+                <el-table-column
+                    fixed="right"
+                    label="操作"
+                    width="146">
+                    <template slot-scope="scope">
+                        <el-button @click="agreeFriendApply(scope.$index, friendApplyTableData)" type="success" size="small">同意</el-button>
+                        <el-button @click="refuseFriendApply(scope.$index, friendApplyTableData)" type="danger" size="small">拒绝</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
         </el-dialog>
         
         <!-- 好友列表 -->
         <el-dialog
             title="好友列表"
-            :visible.sync="friendDialogVisible"
-            width="600px"
+            :visible.sync="friendsDialogVisible"
+            width="400px"
             top="200px"
             center>
-            <span>这是一段信息</span>
+            <el-table :data="friendsTableData">
+                <el-table-column prop="friend" label="好友名称">
+                </el-table-column>
+                <el-table-column
+                    fixed="right"
+                    label="操作"
+                    width="76">
+                    <template slot-scope="scope">
+                        <el-button @click="deleteFriendApply(scope.$index, friendsTableData)" type="danger" size="small">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
         </el-dialog>
 
         <!-- 新建群聊页面 -->
@@ -258,7 +283,7 @@
                 friendApplyDialogVisible: false,
                 newGroupDialogVisible: false,
                 joinGroupDialogVisible: false,
-                friendDialogVisible: false,
+                friendsDialogVisible: false,
                 
                 addFriendForm: {
                     applyName: '',
@@ -273,12 +298,15 @@
                     password: '',
                 },
                 formLabelWidth: '120px',
+
+                friendApplyTableData: [],
+                friendsTableData: []
             }
         },
         methods: {
             // 注销
             logout() {
-                this.$http.post(
+                this.$http.get(
                     "http://localhost/user/logout"
                 ).then((res)=>{
                     if (res.data.ret) {
@@ -308,13 +336,8 @@
                     this.alertError("申请信息长度不能超过50!");
                     return;
                 }
-                
-                this.$http.post(
-                    "http://localhost/friendApply/add",
-                    {
-                        applyName: this.addFriendForm.applyName,
-                        msg: this.addFriendForm.msg,
-                    }
+                this.$http.get(
+                    "http://localhost/friendApply/add/" + this.addFriendForm.applyName + "/" + this.addFriendForm.msg,
                 ).then((res)=>{
                     if (res.data.ret) {
                         this.alertSuccess(res.data.msg);
@@ -334,6 +357,76 @@
                 this.addFriendForm.applyName = '';
                 this.addFriendForm.msg = '';
             },
+
+            // 查询好友申请
+            friendApply() {
+                this.friendApplyDialogVisible = true
+                this.$http.get(
+                    "http://localhost/friendApply/search",
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.friendApplyTableData = res.data.obj;
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
+            },
+
+            // 同意好友申请
+            agreeFriendApply(index, rows) {
+                this.$http.get(
+                    "http://localhost/friendApply/agree/" + rows[index].name,
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.alertSuccess("已同意该好友的申请！");
+                        rows.splice(index, 1);
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
+            },
+
+            // 拒绝好友申请
+            refuseFriendApply(index, rows) {
+                this.$http.get(
+                    "http://localhost/friendApply/refuse/" + rows[index].name,
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.alertSuccess("已拒绝该好友的申请！");
+                        rows.splice(index, 1);
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
+            },
+
+            // 获取好友列表
+            friends() {
+                this.friendsDialogVisible = true;
+                this.$http.get(
+                    "http://localhost/friend/getFriends",
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.friendsTableData = res.data.obj;
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
+            },
+
+            // 删除好友
+            deleteFriendApply(index, rows) {
+                this.alertSuccess("删除好友成功！");
+            },
+
 
             // 新建群聊
             newGroup() {
@@ -365,7 +458,7 @@
                     this.$refs.elMenu.activeIndex = null;
                     this.chatTitle = '聊天室';
                 } else if (command == 'delete') {
-                    this.alertSuccess("退出聊天室成功！");
+                    this.alertSuccess("删除聊天室成功！");
                 }
             },
 

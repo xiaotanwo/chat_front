@@ -89,6 +89,31 @@
     color: #333333 !important;
 }
 
+
+/* 表格表头字体颜色 */
+.el-table thead {
+   color: #67C23A;
+}
+/* 透明化整体 */
+.el-table,
+.el-table__expanded-cell {
+    /* 表格字体颜色 */
+    color:white;
+    background-color: transparent !important;
+}
+/* 透明化行、单元格 */
+.el-table th,
+.el-table tr,
+.el-table td {
+    border: 0;
+    background-color: transparent !important;
+}
+/* hover时样式 */
+.el-table tbody tr:hover>td {
+    background-color: #367f7f78 !important
+}
+
+
 /* Container布局统一设置 */
 .el-row {
     margin-bottom: 20px;
