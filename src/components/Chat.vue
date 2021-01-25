@@ -180,7 +180,8 @@
                 <el-table-column
                     fixed="right"
                     label="操作"
-                    width="76">
+                    width="76"
+                    style="border-bottom: 0px;">
                     <template slot-scope="scope">
                         <el-button @click="deleteFriendApply(scope.$index, friendsTableData)" type="danger" size="small">删除</el-button>
                     </template>
@@ -300,7 +301,7 @@
                 formLabelWidth: '120px',
 
                 friendApplyTableData: [],
-                friendsTableData: []
+                friendsTableData: [],  
             }
         },
         methods: {
@@ -336,8 +337,12 @@
                     this.alertError("申请信息长度不能超过50!");
                     return;
                 }
-                this.$http.get(
-                    "http://localhost/friendApply/add/" + this.addFriendForm.applyName + "/" + this.addFriendForm.msg,
+                this.$http.post(
+                    "http://localhost/friendApply/add",
+                    {
+                        applyName: this.addFriendForm.applyName,
+                        msg: this.addFriendForm.msg,
+                    }
                 ).then((res)=>{
                     if (res.data.ret) {
                         this.alertSuccess(res.data.msg);
@@ -425,6 +430,7 @@
             // 删除好友
             deleteFriendApply(index, rows) {
                 this.alertSuccess("删除好友成功！");
+                rows.splice(index, 1);
             },
 
 
