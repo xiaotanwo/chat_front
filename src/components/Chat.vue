@@ -180,10 +180,9 @@
                 <el-table-column
                     fixed="right"
                     label="操作"
-                    width="76"
-                    style="border-bottom: 0px;">
+                    width="76">
                     <template slot-scope="scope">
-                        <el-button @click="deleteFriendApply(scope.$index, friendsTableData)" type="danger" size="small">删除</el-button>
+                        <el-button @click="deleteFriend(scope.$index, friendsTableData)" type="danger" size="small">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -257,22 +256,37 @@
         },
         data() {
             return {
+                // 默认聊天室的名称
                 chatTitle: '聊天室',
+
+                // 用户名
                 username: '',
+
+                // 头像文本
                 headname: '',
+
+                // 聊天信息
                 chat_text: '',
+
+                // 聊天输入框换行的shift标志
                 shift_flag: false,
+
+                // 暂时写死的好友
                 friendList: [
                     "一二三四五六七八九十",
                     "李四",
                     "王五"
                 ],
+
+                // 暂时写死的群聊
                 groupList: [
                     "西三游泳群",
                     "富婆包养群",
                     "有福同享 有难退群",
                     "性感沙雕在线夜聊",
                 ],
+
+                // 暂时写死的聊天室
                 roomList: [
                     "北京",
                     "上海",
@@ -280,12 +294,14 @@
                     "深圳",
                 ],
                 
+                // 弹窗
                 addFriendDialogVisible: false,
                 friendApplyDialogVisible: false,
                 newGroupDialogVisible: false,
                 joinGroupDialogVisible: false,
                 friendsDialogVisible: false,
                 
+                // 表单数据
                 addFriendForm: {
                     applyName: '',
                     msg: '',
@@ -300,8 +316,9 @@
                 },
                 formLabelWidth: '120px',
 
+                // 列表数据
                 friendApplyTableData: [],
-                friendsTableData: [],  
+                friendsTableData: [],
             }
         },
         methods: {
@@ -427,10 +444,20 @@
                 });
             },
 
-            // 删除好友
-            deleteFriendApply(index, rows) {
-                this.alertSuccess("删除好友成功！");
-                rows.splice(index, 1);
+            // 双向删除好友
+            deleteFriend(index, rows) {
+                this.$http.get(
+                    "http://localhost/friend/delete/" + rows[index].friend,
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.alertSuccess("双向删除好友成功！");
+                        rows.splice(index, 1);
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
             },
 
 
