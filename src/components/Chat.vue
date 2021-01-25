@@ -256,6 +256,9 @@
         },
         data() {
             return {
+                // 密码加密
+                slat: '1a2b3c4d',
+
                 // 默认聊天室的名称
                 chatTitle: '聊天室',
 
@@ -463,7 +466,37 @@
 
             // 新建群聊
             newGroup() {
-                this.alertSuccess("新建成功!");
+                // 去除首尾的空格
+                this.newGroupForm.name = this.newGroupForm.name.trim();
+                this.newGroupForm.password = this.newGroupForm.password.trim();
+
+                // 初步验证名称的正确性
+                if (!this.trueName(this.newGroupForm.name)) {
+                    this.alertError("群聊名长度在2至10位!");
+                    return;
+                }
+                // 限制申请信息的长度为50
+                if (!this.truePassword(this.newGroupForm.password)) {
+                    this.alertError("密码长度在6至18位!");
+                    return;
+                }
+
+                this.$http.post(
+                    "http://localhost/group/newGroup",
+                    {
+                        name: this.newGroupForm.name,
+                        password: this.$md5(this.slat[0] + this.slat[2] + this.newGroupForm.password + this.slat[5] + this.slat[4])
+                    }
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.alertSuccess("新建群聊：" + this.newGroupForm.name + " 成功!");
+                        this.newGroupClose();
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
             },
 
             // 关闭新建群聊页面
@@ -475,7 +508,37 @@
 
             // 加入群聊
             joinGroup() {
-                this.alertSuccess("加入成功!");
+                // 去除首尾的空格
+                this.joinGroupForm.name = this.joinGroupForm.name.trim();
+                this.joinGroupForm.password = this.joinGroupForm.password.trim();
+
+                // 初步验证名称的正确性
+                if (!this.trueName(this.joinGroupForm.name)) {
+                    this.alertError("群聊名长度在2至10位!");
+                    return;
+                }
+                // 限制申请信息的长度为50
+                if (!this.truePassword(this.joinGroupForm.password)) {
+                    this.alertError("密码长度在6至18位!");
+                    return;
+                }
+
+                this.$http.post(
+                    "http://localhost/groupMember/joinGroup",
+                    {
+                        name: this.joinGroupForm.name,
+                        password: this.$md5(this.slat[0] + this.slat[2] + this.joinGroupForm.password + this.slat[5] + this.slat[4])
+                    }
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.alertSuccess("加入群聊：" + this.joinGroupForm.name + " 成功!");
+                        this.joinGroupClose();
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
             },
 
             // 关闭加入群聊页面
