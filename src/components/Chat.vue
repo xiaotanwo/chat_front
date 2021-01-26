@@ -31,6 +31,7 @@
                                     background-color="#545c64"
                                     text-color="#409EFF"
                                     active-text-color="#ffd04b"
+                                    :unique-opened=true
                                     style="text-align: left; border-right: 0">
                                     <el-submenu index="1">
                                         <template slot="title">
@@ -66,8 +67,8 @@
                                             <span>好友</span>
                                         </template>
                                         <el-menu-item style="color: #67C23A" @click="addFriendDialogVisible = true">添加好友</el-menu-item>
-                                        <el-menu-item style="color: #67C23A" @click="friendApply">好友申请</el-menu-item>
-                                        <el-menu-item style="color: #67C23A" @click="friends">好友列表</el-menu-item>
+                                        <el-menu-item style="color: #67C23A" @click="friendApplyDialogVisible = true">好友申请</el-menu-item>
+                                        <el-menu-item style="color: #67C23A" @click="friendsDialogVisible = true;">好友列表</el-menu-item>
                                         <el-menu-item 
                                             :index="('3-' + index)"
                                             v-for="(item,index) in friendList" :key="index"
@@ -251,9 +252,56 @@
             Avatar
         },
         created() {
+            // 初始化，只执行一次
+            
+            // 获取登录后的用户名
             this.username = this.$route.query.username;
             this.headname = this.username[0] + ' ' + this.username[1];
+
+            // 获取在线好友信息
+            // 待完善，需用websocket
+
+            // 获取群聊
+            this.$http.get(
+                "http://localhost/groupMember/getGroups",
+            ).then((res)=>{
+                if (res.data.ret) {
+                    this.groupList = res.data.obj;
+                } else {
+                    this.alertError(res.data.msg);
+                }
+            }).catch((res) => {
+                this.alertError("网络出现故障，请稍后再尝试！");
+            });
+            
+            // 获取好友信息
+            this.$http.get(
+                "http://localhost/friend/getFriends",
+            ).then((res)=>{
+                if (res.data.ret) {
+                    this.friendsTableData = res.data.obj;
+                } else {
+                    this.alertError(res.data.msg);
+                }
+            }).catch((res) => {
+                this.alertError("网络出现故障，请稍后再尝试！");
+            });
+
+            // 获取好友申请
+            this.$http.get(
+                "http://localhost/friendApply/search",
+            ).then((res)=>{
+                if (res.data.ret) {
+                    this.friendApplyTableData = res.data.obj;
+                } else {
+                    this.alertError(res.data.msg);
+                }
+            }).catch((res) => {
+                this.alertError("网络出现故障，请稍后再尝试！");
+            });
         },
+
+
         data() {
             return {
                 // 密码加密
@@ -281,13 +329,8 @@
                     "王五"
                 ],
 
-                // 暂时写死的群聊
-                groupList: [
-                    "西三游泳群",
-                    "富婆包养群",
-                    "有福同享 有难退群",
-                    "性感沙雕在线夜聊",
-                ],
+                // 群聊列表
+                groupList: [],
 
                 // 暂时写死的聊天室
                 roomList: [
@@ -324,6 +367,8 @@
                 friendsTableData: [],
             }
         },
+
+
         methods: {
             // 注销
             logout() {
@@ -383,22 +428,6 @@
                 this.addFriendForm.msg = '';
             },
 
-            // 查询好友申请
-            friendApply() {
-                this.friendApplyDialogVisible = true
-                this.$http.get(
-                    "http://localhost/friendApply/search",
-                ).then((res)=>{
-                    if (res.data.ret) {
-                        this.friendApplyTableData = res.data.obj;
-                    } else {
-                        this.alertError(res.data.msg);
-                    }
-                }).catch((res) => {
-                    this.alertError("网络出现故障，请稍后再尝试！");
-                });
-            },
-
             // 同意好友申请
             agreeFriendApply(index, rows) {
                 this.$http.get(
@@ -406,6 +435,14 @@
                 ).then((res)=>{
                     if (res.data.ret) {
                         this.alertSuccess("已同意该好友的申请！");
+                        // 已经是好友则无需再添加
+                        if ('已是好友！' != res.data.msg) {
+                            // 添加好友到好友列表中
+                            this.friendsTableData.push({
+                                friend: rows[index].name
+                            });
+                        }
+                        // 移除好友申请
                         rows.splice(index, 1);
                     } else {
                         this.alertError(res.data.msg);
@@ -423,22 +460,6 @@
                     if (res.data.ret) {
                         this.alertSuccess("已拒绝该好友的申请！");
                         rows.splice(index, 1);
-                    } else {
-                        this.alertError(res.data.msg);
-                    }
-                }).catch((res) => {
-                    this.alertError("网络出现故障，请稍后再尝试！");
-                });
-            },
-
-            // 获取好友列表
-            friends() {
-                this.friendsDialogVisible = true;
-                this.$http.get(
-                    "http://localhost/friend/getFriends",
-                ).then((res)=>{
-                    if (res.data.ret) {
-                        this.friendsTableData = res.data.obj;
                     } else {
                         this.alertError(res.data.msg);
                     }
@@ -490,7 +511,11 @@
                 ).then((res)=>{
                     if (res.data.ret) {
                         this.alertSuccess("新建群聊：" + this.newGroupForm.name + " 成功!");
-                        this.newGroupClose();
+                        // 添加新建的群聊
+                        this.groupList.push(this.newGroupForm.name);
+                        // 清空新建群聊信息
+                        this.newGroupForm.name = '';
+                        this.newGroupForm.password = '';
                     } else {
                         this.alertError(res.data.msg);
                     }
@@ -532,7 +557,11 @@
                 ).then((res)=>{
                     if (res.data.ret) {
                         this.alertSuccess("加入群聊：" + this.joinGroupForm.name + " 成功!");
-                        this.joinGroupClose();
+                        // 添加加入的群聊
+                        this.groupList.push(this.joinGroupForm.name);
+                        // 清空新建群聊信息
+                        this.joinGroupForm.name = '';
+                        this.joinGroupForm.password = '';
                     } else {
                         this.alertError(res.data.msg);
                     }
