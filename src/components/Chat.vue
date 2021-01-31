@@ -101,6 +101,38 @@
                         
                         <!-- 聊天信息框 -->
                         <el-main style="padding: 5px 10px;">
+                            <div style='margin: 2px 5px 2px 52px; display: flex; justify-content: flex-end; align-items: flex-start;'>
+                                <div style='text-align: right;'>
+                                    <div style='color: Lime; text-align: justify; padding: 3px; margin: 3px'>
+                                        吃了吗？
+                                    </div>
+                                </div>
+                                <div>
+                                    <Avatar
+                                        :username="headname"
+                                        background-color="#606266"
+                                        color="#67C23A"
+                                        style="vertical-align: middle;"
+                                        :inline="true">
+                                    </Avatar>
+                                </div>
+                            </div>
+                            <div style='margin: 2px 55px 2px 2px; display: flex; justify-content: flex-start; align-items: flex-start;'>
+                                <div>
+                                    <Avatar
+                                        :username="headname"
+                                        background-color="#606266"
+                                        color="#67C23A"
+                                        style="vertical-align: middle;"
+                                        :inline="true">
+                                    </Avatar>
+                                </div>
+                                <div style='text-align: left;'>
+                                    <div style='color: darkturquoise; text-align: justify; padding: 3px; margin: 3px'>
+                                        吃了，你呢？
+                                    </div>
+                                </div>
+                            </div>
                         </el-main>
 
                         <!-- 发送框 -->
@@ -590,19 +622,16 @@
             // 聊天室点击事件
             chatInRoom(item) {
                 this.chatTitle = item;
-                this.alertSuccess(item);
             },
 
             // 群聊点击事件
             chatInGroup(item) {
                 this.chatTitle = item;
-                this.alertSuccess(item);
             },
 
             // 好友点击事件
             chatWithFriend(item) {
                 this.chatTitle = item;
-                this.alertSuccess(item);
             },
 
             // 发送聊天信息
