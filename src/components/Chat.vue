@@ -1,158 +1,5 @@
 <template>
     <div>
-        <!-- 扩展上边界 -->
-        <el-row :gutter="20">
-            <el-col :span="8" :offset="8">
-                <div class="grid-content">
-                </div>
-            </el-col>
-        </el-row>
-        
-        <el-row :gutter="20">
-            <el-col :span="16" :offset="4">
-                <el-container style="height: 700px; background-color: #2C3E50; opacity: 0.9">
-                    <el-container style="height: 100%; width: 250px">
-                        <!-- 文字头像 -->
-                        <el-header>
-                             <Avatar
-                                :username="headname"
-                                background-color="#606266"
-                                color="#67C23A"
-                                style="vertical-align: middle;"
-                                :inline="true">
-                            </Avatar>
-                        </el-header>
-                        <!-- 聊天列表 -->
-                        <el-main style="margin: 5px 0; padding: 0;">
-                            <el-col>
-                                <el-menu ref="elMenu"
-                                    default-active="2"
-                                    class="el-menu-vertical-demo"
-                                    background-color="#545c64"
-                                    text-color="#409EFF"
-                                    active-text-color="#ffd04b"
-                                    :unique-opened=true
-                                    style="text-align: left; border-right: 0">
-                                    <el-submenu index="1">
-                                        <template slot="title">
-                                            <i class="el-icon-s-home" style="color: #67C23A"></i>
-                                            <span>聊天室</span>
-                                        </template>
-                                        <el-menu-item 
-                                            :index="('1-' + index)"
-                                            v-for="(item,index) in roomList" :key="index"
-                                            @click="chatInRoom(item)">
-                                            {{item}}
-                                        </el-menu-item>
-                                    </el-submenu>
-                                    
-                                    <el-submenu index="2">
-                                        <template slot="title">
-                                            <i class="el-icon-star-on" style="color: #67C23A"></i>
-                                            <span>群聊</span>
-                                        </template>
-                                        <el-menu-item style="color: #67C23A" @click="newGroupDialogVisible = true">新建群聊</el-menu-item>
-                                        <el-menu-item style="color: #67C23A" @click="joinGroupDialogVisible = true">加入群聊</el-menu-item>
-                                        <el-menu-item 
-                                            :index="('2-' + index)"
-                                            v-for="(item,index) in groupList" :key="index"
-                                            @click="chatInGroup(item)">
-                                            {{item}}
-                                        </el-menu-item>
-                                    </el-submenu>
-
-                                    <el-submenu index="3">
-                                        <template slot="title">
-                                            <i class="el-icon-user-solid" style="color: #67C23A"></i>
-                                            <span>好友</span>
-                                        </template>
-                                        <el-menu-item style="color: #67C23A" @click="addFriendDialogVisible = true">添加好友</el-menu-item>
-                                        <el-menu-item style="color: #67C23A" @click="friendApplyDialogVisible = true">好友申请</el-menu-item>
-                                        <el-menu-item style="color: #67C23A" @click="friendsDialogVisible = true;">好友列表</el-menu-item>
-                                        <el-menu-item 
-                                            :index="('3-' + index)"
-                                            v-for="(item,index) in friendList" :key="index"
-                                            @click="chatWithFriend(item)">
-                                            {{item}}
-                                        </el-menu-item>
-                                    </el-submenu>
-                                </el-menu>
-                            </el-col>
-                        </el-main>
-                        <!-- 退出按钮 -->
-                        <el-footer style="padding-top: 10px">
-                            <el-button type="danger" round @click="logout">退出</el-button>
-                        </el-footer>
-                    </el-container>
-
-                    <el-container style="width: 85%">
-                        <!-- 聊天室名称 -->
-                        <el-header style="text-align: center;">
-                            <el-dropdown @command="handleCommand">
-                                <span class="el-dropdown-link" style="color: #67C23A; font-size: 20px;">
-                                    {{chatTitle}}<i class="el-icon-arrow-down el-icon--right"></i>
-                                </span>
-                                <el-dropdown-menu slot="dropdown">
-                                    <el-dropdown-item icon="el-icon-error" command="close" style="color: #67C23A">关闭</el-dropdown-item>
-                                    <el-dropdown-item icon="el-icon-delete-solid" command="delete" style="color: #67C23A">删除</el-dropdown-item>
-                                </el-dropdown-menu>
-                            </el-dropdown>
-                        </el-header>
-                        
-                        <!-- 聊天信息框 -->
-                        <el-main style="padding: 5px 10px;">
-                            <div style='margin: 2px 5px 2px 52px; display: flex; justify-content: flex-end; align-items: flex-start;'>
-                                <div style='text-align: right;'>
-                                    <div style='color: Lime; text-align: justify; padding: 3px; margin: 3px'>
-                                        吃了吗？
-                                    </div>
-                                </div>
-                                <div>
-                                    <Avatar
-                                        :username="headname"
-                                        background-color="#606266"
-                                        color="#67C23A"
-                                        style="vertical-align: middle;"
-                                        :inline="true">
-                                    </Avatar>
-                                </div>
-                            </div>
-                            <div style='margin: 2px 55px 2px 2px; display: flex; justify-content: flex-start; align-items: flex-start;'>
-                                <div>
-                                    <Avatar
-                                        :username="headname"
-                                        background-color="#606266"
-                                        color="#67C23A"
-                                        style="vertical-align: middle;"
-                                        :inline="true">
-                                    </Avatar>
-                                </div>
-                                <div style='text-align: left;'>
-                                    <div style='color: darkturquoise; text-align: justify; padding: 3px; margin: 3px'>
-                                        吃了，你呢？
-                                    </div>
-                                </div>
-                            </div>
-                        </el-main>
-
-                        <!-- 发送框 -->
-                        <el-footer style="height: 130px; padding: 5px 10px;">
-                            <el-input
-                                maxlength=300
-                                @keyup.native="toSend($event)"
-                                @keydown.shift.native="downshift"
-                                resize="none"
-                                type="textarea"
-                                :rows="5"
-                                placeholder="请输入聊天内容。 Enter 发送，Shift + Enter 换行"
-                                v-model="chat_text">
-                            </el-input>
-                        </el-footer>
-                    </el-container>
-                </el-container>
-            </el-col>
-        </el-row>
-
         <!-- 添加好友页面 -->
         <el-dialog
             title="添加好友"
@@ -274,6 +121,129 @@
                 <el-button type="primary" @click="joinGroup">加 入</el-button>
             </span>
         </el-dialog>
+
+        <!-- 扩展上边界 -->
+        <el-row :gutter="20">
+            <el-col :span="8" :offset="8">
+                <div class="grid-content">
+                </div>
+            </el-col>
+        </el-row>
+        
+        <el-row :gutter="20">
+            <el-col :span="16" :offset="4">
+                <el-container style="height: 700px; background-color: #2C3E50; opacity: 0.9">
+                    <el-container style="height: 100%; width: 250px">
+                        <!-- 文字头像 -->
+                        <el-header>
+                             <Avatar
+                                :username="headname"
+                                background-color="#606266"
+                                color="#67C23A"
+                                style="vertical-align: middle;"
+                                :inline="true">
+                            </Avatar>
+                        </el-header>
+                        <!-- 聊天列表 -->
+                        <el-main style="margin: 5px 0; padding: 0;">
+                            <el-col>
+                                <el-menu ref="elMenu"
+                                    default-active="2"
+                                    class="el-menu-vertical-demo"
+                                    background-color="#545c64"
+                                    text-color="#409EFF"
+                                    active-text-color="#ffd04b"
+                                    :unique-opened=true
+                                    style="text-align: left; border-right: 0">
+                                    <el-submenu index="1">
+                                        <template slot="title">
+                                            <i class="el-icon-s-home" style="color: #67C23A"></i>
+                                            <span>聊天室</span>
+                                        </template>
+                                        <el-menu-item 
+                                            :index="('1-' + index)"
+                                            v-for="(item,index) in roomList" :key="index"
+                                            @click="chatInRoom(item)">
+                                            {{item}}
+                                        </el-menu-item>
+                                    </el-submenu>
+                                    
+                                    <el-submenu index="2">
+                                        <template slot="title">
+                                            <i class="el-icon-star-on" style="color: #67C23A"></i>
+                                            <span>群聊</span>
+                                        </template>
+                                        <el-menu-item style="color: #67C23A" @click="newGroupDialogVisible = true">新建群聊</el-menu-item>
+                                        <el-menu-item style="color: #67C23A" @click="joinGroupDialogVisible = true">加入群聊</el-menu-item>
+                                        <el-menu-item 
+                                            :index="('2-' + index)"
+                                            v-for="(item,index) in groupList" :key="index"
+                                            @click="chatInGroup(item)">
+                                            {{item}}
+                                        </el-menu-item>
+                                    </el-submenu>
+
+                                    <el-submenu index="3">
+                                        <template slot="title">
+                                            <i class="el-icon-user-solid" style="color: #67C23A"></i>
+                                            <span>好友</span>
+                                        </template>
+                                        <el-menu-item style="color: #67C23A" @click="addFriendDialogVisible = true">添加好友</el-menu-item>
+                                        <el-menu-item style="color: #67C23A" @click="friendApplyDialogVisible = true">好友申请</el-menu-item>
+                                        <el-menu-item style="color: #67C23A" @click="friendsDialogVisible = true;">好友列表</el-menu-item>
+                                        <el-menu-item 
+                                            :index="('3-' + index)"
+                                            v-for="(item,index) in friendList" :key="index"
+                                            @click="chatWithFriend(item)">
+                                            {{item}}
+                                        </el-menu-item>
+                                    </el-submenu>
+                                </el-menu>
+                            </el-col>
+                        </el-main>
+                        <!-- 退出按钮 -->
+                        <el-footer style="padding-top: 10px">
+                            <el-button type="danger" round @click="logout">退出</el-button>
+                        </el-footer>
+                    </el-container>
+
+                    <el-container style="width: 85%">
+                        <!-- 聊天室名称 -->
+                        <el-header style="text-align: center;">
+                            <el-dropdown @command="handleCommand">
+                                <span class="el-dropdown-link" style="color: #67C23A; font-size: 20px;">
+                                    {{chatTitle}}<i class="el-icon-arrow-down el-icon--right"></i>
+                                </span>
+                                <el-dropdown-menu slot="dropdown">
+                                    <el-dropdown-item icon="el-icon-error" command="close" style="color: #67C23A">关闭</el-dropdown-item>
+                                    <el-dropdown-item icon="el-icon-delete-solid" command="delete" style="color: #67C23A">删除</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </el-dropdown>
+                        </el-header>
+                        
+                        <!-- 聊天信息框 -->
+                        <el-main style="padding: 5px 10px;" id="scrollDiv">
+                            <div v-html="info">
+                            </div>
+                        </el-main>
+
+                        <!-- 发送框 -->
+                        <el-footer style="height: 130px; padding: 5px 10px;">
+                            <el-input
+                                maxlength=300
+                                @keyup.native="toSend($event)"
+                                @keydown.shift.native="downshift"
+                                resize="none"
+                                type="textarea"
+                                :rows="5"
+                                placeholder="请输入聊天内容。 Enter 发送，Shift + Enter 换行"
+                                v-model="chat_text">
+                            </el-input>
+                        </el-footer>
+                    </el-container>
+                </el-container>
+            </el-col>
+        </el-row>
     </div>
 </template>
 
@@ -331,6 +301,19 @@
             }).catch((res) => {
                 this.alertError("网络出现故障，请稍后再尝试！");
             });
+
+            // 测试用例
+            this.info = 
+            this.infoToHtml("张三", "吃了吗？") + 
+            this.infoToHtml("李四", "吃了，你呢") +
+            this.infoToHtml("张三", "正在吃") +
+            this.infoToHtml("王五", "不急，慢慢吃");
+        },
+
+        updated(){
+            // 聊天定位到底部
+            let ele = document.getElementById('scrollDiv');
+            ele.scrollTop = ele.scrollHeight;
         },
 
 
@@ -397,6 +380,9 @@
                 // 列表数据
                 friendApplyTableData: [],
                 friendsTableData: [],
+
+                // 聊天信息
+                info: '',
             }
         },
 
@@ -609,6 +595,32 @@
                 this.joinGroupForm.password = '';
             },
 
+            // 头像的html
+            getAvatar(name, col) {
+                return '<div style="margin: 0 0 10px 0"><div aria-hidden="true" class="vue-avatar--wrapper" style="display: inline-flex; width: 50px; height: 50px; border-radius: 50%; font: 20px / 50px Helvetica, Arial, sans-serif; align-items: center; justify-content: center; text-align: center; user-select: none; background-color: rgb(96, 98, 102); color: ' + col + '; vertical-align: middle;"><span>' + name.substring(0,2) + '</span></div></div>'
+            },
+
+            // msg的html
+            getMsg(msg, dir, col) {
+                return  "<div style='color: " + col + "; text-align: " + dir + "; padding: 3px; margin: 3px'>" +
+                            msg +
+                        "</div>"
+            },
+
+            // 聊天信息转成html进行插入
+            infoToHtml(name, msg) {
+                // 自己发送的，右边
+                if (name == this.username) {
+                    return "<div style='margin: 2px 5px 2px 52px; display: flex; justify-content: flex-end; align-items: flex-start;'>" +
+                                this.getMsg(msg, "right", "#67C23A") + this.getAvatar(name, "#67C23A") +
+                            "</div>"
+                } else { // 别人发送的，左边
+                    return "<div style='margin: 2px 52px 2px 5px ; display: flex; justify-content: flex-start; align-items: flex-start;'>" +
+                                this.getAvatar(name, "#E6A23C") + this.getMsg(msg, "left", "#E6A23C") +
+                            "</div>"
+                }
+            },
+
             // 聊天室内的操作
             handleCommand(command) {
                 if (command == 'close') {
@@ -643,7 +655,7 @@
                         this.alertError("聊天信息不嫩为空！");
                         return;
                     }
-                    this.alertSuccess("发送成功！");
+                    this.info += this.infoToHtml(this.username, this.chat_text.replace(/(\r\n)|(\n)/g,'<br>'));
                     this.chat_text = '';
                 } else if (event.keyCode == 16) {
                     this.shift_flag = false;
