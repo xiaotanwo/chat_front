@@ -143,6 +143,13 @@
                                 style="vertical-align: middle;"
                                 :inline="true">
                             </Avatar>
+                            <!-- 离线显示 -->
+                            <el-tag
+                                v-if="outConnecting"
+                                type="danger"
+                                style="background-color: transparent; border: 0;">
+                                --离线中--
+                            </el-tag>
                         </el-header>
                         <!-- 聊天列表 -->
                         <el-main style="margin: 5px 0; padding: 0;">
@@ -253,6 +260,7 @@
         components:{
             Avatar
         },
+
         created() {
             // 初始化，只执行一次
             
@@ -260,54 +268,9 @@
             this.username = this.$route.query.username;
             this.headname = this.username[0] + ' ' + this.username[1];
 
-            // 获取在线好友信息
-            // 待完善，需用websocket
+            this.init();
 
-            // 获取群聊
-            this.$http.get(
-                "http://localhost/groupMember/getGroups",
-            ).then((res)=>{
-                if (res.data.ret) {
-                    this.groupList = res.data.obj;
-                } else {
-                    this.alertError(res.data.msg);
-                }
-            }).catch((res) => {
-                this.alertError("网络出现故障，请稍后再尝试！");
-            });
-            
-            // 获取好友信息
-            this.$http.get(
-                "http://localhost/friend/getFriends",
-            ).then((res)=>{
-                if (res.data.ret) {
-                    this.friendsTableData = res.data.obj;
-                } else {
-                    this.alertError(res.data.msg);
-                }
-            }).catch((res) => {
-                this.alertError("网络出现故障，请稍后再尝试！");
-            });
-
-            // 获取好友申请
-            this.$http.get(
-                "http://localhost/friendApply/search",
-            ).then((res)=>{
-                if (res.data.ret) {
-                    this.friendApplyTableData = res.data.obj;
-                } else {
-                    this.alertError(res.data.msg);
-                }
-            }).catch((res) => {
-                this.alertError("网络出现故障，请稍后再尝试！");
-            });
-
-            // 测试用例
-            this.info = 
-            this.infoToHtml("张三", "吃了吗？") + 
-            this.infoToHtml("李四", "吃了，你呢") +
-            this.infoToHtml("张三", "正在吃") +
-            this.infoToHtml("王五", "不急，慢慢吃");
+            this.newWs();
         },
 
         updated(){
@@ -330,6 +293,9 @@
 
                 // 头像文本
                 headname: '',
+
+                // 离线显示标志
+                outConnecting: true,
 
                 // 聊天信息
                 chat_text: '',
@@ -388,6 +354,80 @@
 
 
         methods: {
+            // 初始化
+            init() {
+                // 获取在线好友信息
+                // 待完善，需用websocket
+
+                // 获取群聊
+                this.$http.get(
+                    "http://localhost/groupMember/getGroups",
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.groupList = res.data.obj;
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
+                
+                // 获取好友信息
+                this.$http.get(
+                    "http://localhost/friend/getFriends",
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.friendsTableData = res.data.obj;
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
+
+                // 获取好友申请
+                this.$http.get(
+                    "http://localhost/friendApply/search",
+                ).then((res)=>{
+                    if (res.data.ret) {
+                        this.friendApplyTableData = res.data.obj;
+                    } else {
+                        this.alertError(res.data.msg);
+                    }
+                }).catch((res) => {
+                    this.alertError("网络出现故障，请稍后再尝试！");
+                });
+
+                // 测试用例
+                this.info = 
+                this.infoToHtml("张三", "吃了吗？") + 
+                this.infoToHtml("李四", "吃了，你呢") +
+                this.infoToHtml("张三", "正在吃") +
+                this.infoToHtml("王五", "不急，慢慢吃");
+            },
+
+            // 创建websocket对象并绑定事件
+            newWs() {
+                // 创建websocket对象
+                var ws = new WebSocket("ws://localhost/chat");
+                // 给ws绑定事件
+                ws.onopen = () => {
+                    console.log("open函数调用了！");
+                    this.outConnecting = false;
+                }
+
+                ws.onmessage = (evt) => {
+                    console.log("message函数调用了！");
+                    // 获取服务端推送过来的消息
+                    console.log(evt);
+                }
+
+                ws.onclose = () => {
+                    console.log("close函数调用了！");
+                    this.outConnecting = true;
+                }
+            },
+
             // 注销
             logout() {
                 this.$http.get(
