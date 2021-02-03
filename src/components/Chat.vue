@@ -143,7 +143,7 @@
                                 style="vertical-align: middle;"
                                 :inline="true">
                             </Avatar>
-                            <!-- 离线显示 -->
+                            <!-- 离线时显示 -->
                             <el-tag
                                 v-if="outConnecting"
                                 type="danger"
@@ -359,32 +359,6 @@
                 // 获取在线好友信息
                 // 待完善，需用websocket
 
-                // 获取群聊
-                this.$http.get(
-                    "http://localhost/groupMember/getGroups",
-                ).then((res)=>{
-                    if (res.data.ret) {
-                        this.groupList = res.data.obj;
-                    } else {
-                        this.alertError(res.data.msg);
-                    }
-                }).catch((res) => {
-                    this.alertError("网络出现故障，请稍后再尝试！");
-                });
-                
-                // 获取好友信息
-                this.$http.get(
-                    "http://localhost/friend/getFriends",
-                ).then((res)=>{
-                    if (res.data.ret) {
-                        this.friendsTableData = res.data.obj;
-                    } else {
-                        this.alertError(res.data.msg);
-                    }
-                }).catch((res) => {
-                    this.alertError("网络出现故障，请稍后再尝试！");
-                });
-
                 // 获取好友申请
                 this.$http.get(
                     "http://localhost/friendApply/search",
@@ -400,9 +374,12 @@
 
                 // 测试用例
                 this.info = 
+                this.showTip("张三 上线了") +
                 this.infoToHtml("张三", "吃了吗？") + 
+                this.showTip("李四 上线了") +
                 this.infoToHtml("李四", "吃了，你呢") +
                 this.infoToHtml("张三", "正在吃") +
+                this.showTip("王五 上线了") + 
                 this.infoToHtml("王五", "不急，慢慢吃");
             },
 
@@ -412,18 +389,30 @@
                 var ws = new WebSocket("ws://localhost/chat");
                 // 给ws绑定事件
                 ws.onopen = () => {
-                    console.log("open函数调用了！");
                     this.outConnecting = false;
                 }
 
                 ws.onmessage = (evt) => {
-                    console.log("message函数调用了！");
-                    // 获取服务端推送过来的消息
-                    console.log(evt);
+                    // 获取服务端推送过来的消息，转换成JSON格式
+                    var res = JSON.parse(evt.data);
+
+                    if (res.isSystem) {
+                        if (res.type == 2) {
+                            // 好友系统消息
+                            this.friendsTableData = res.list;
+                        } else if (res.type == 1) {
+                            // 群聊系统消息
+                            this.groupList = res.list;
+                        } else if (res.type == 3) {
+                            // 在线好友系统消息
+                            this.friendList = res.list;
+                        }
+                    } else {
+
+                    }
                 }
 
                 ws.onclose = () => {
-                    console.log("close函数调用了！");
                     this.outConnecting = true;
                 }
             },
@@ -659,6 +648,10 @@
                                 this.getAvatar(name, "#E6A23C") + this.getMsg(msg, "left", "#E6A23C") +
                             "</div>"
                 }
+            },
+
+            showTip(tip) {
+                return '<span style="color: #F56C6C">' + tip + '</span>';
             },
 
             // 聊天室内的操作
