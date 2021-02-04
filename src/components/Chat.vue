@@ -244,7 +244,7 @@
                                 type="textarea"
                                 :rows="5"
                                 placeholder="请输入聊天内容。 Enter 发送，Shift + Enter 换行"
-                                v-model="chat_text">
+                                v-model="chatText">
                             </el-input>
                         </el-footer>
                     </el-container>
@@ -262,8 +262,6 @@
         },
 
         created() {
-            // 初始化，只执行一次
-            
             // 获取登录后的用户名
             this.username = this.$route.query.username;
             this.headname = this.username[0] + ' ' + this.username[1];
@@ -273,6 +271,7 @@
             this.newWs();
         },
 
+        // 待完善
         updated(){
             // 聊天定位到底部
             let ele = document.getElementById('scrollDiv');
@@ -298,10 +297,13 @@
                 outConnecting: true,
 
                 // 聊天信息
-                chat_text: '',
+                chatText: '',
+
+                // 聊天类型，-1：没有选中聊天对象，0：聊天室，1：群聊，2：好友
+                chatType: -1,
 
                 // 聊天输入框换行的shift标志
-                shift_flag: false,
+                shiftFlag: false,
 
                 // 好友
                 friendList: [],
@@ -338,8 +340,11 @@
                 friendApplyTableData: [],
                 friendsTableData: [],
 
-                // 聊天信息
+                // 显示的聊天信息
                 info: '',
+
+                // websocket对象
+                ws: null,
             }
         },
 
@@ -347,9 +352,6 @@
         methods: {
             // 初始化
             init() {
-                // 获取在线好友信息
-                // 待完善，需用websocket
-
                 // 获取好友申请
                 this.$http.get(
                     "http://localhost/friendApply/search",
@@ -362,28 +364,18 @@
                 }).catch((res) => {
                     this.alertError("网络出现故障，请稍后再尝试！");
                 });
-
-                // 测试用例
-                this.info = 
-                this.showTip("张三 上线了") +
-                this.infoToHtml("张三", "吃了吗？") + 
-                this.showTip("李四 上线了") +
-                this.infoToHtml("李四", "吃了，你呢") +
-                this.infoToHtml("张三", "正在吃") +
-                this.showTip("王五 上线了") + 
-                this.infoToHtml("王五", "不急，慢慢吃");
             },
 
             // 创建websocket对象并绑定事件
             newWs() {
-                // 创建websocket对象
-                var ws = new WebSocket("ws://localhost/chat");
+                // 创建websocket对象,全局变量
+                this.ws = new WebSocket("ws://localhost/chat");
                 // 给ws绑定事件
-                ws.onopen = () => {
+                this.ws.onopen = () => {
                     this.outConnecting = false;
                 }
 
-                ws.onmessage = (evt) => {
+                this.ws.onmessage = (evt) => {
                     // 获取服务端推送过来的消息，转换成JSON格式
                     var res = JSON.parse(evt.data);
 
@@ -391,13 +383,27 @@
                     var fristType = parseInt(res.type / 10);
                     var secendType = res.type % 10;
                     
-                    console.log(res)
                     switch(fristType) {
                         case 0:
                             // 聊天室
                             switch(secendType) {
                                 case 0:
+                                    // 聊天列表
                                     this.roomList = res.obj;
+                                    break;
+                                case 1:
+                                    // 聊天消息
+                                    var chatData = sessionStorage.getItem(0 + res.toName);
+                                    var str = this.infoToHtml(res.fromName, res.obj);
+                                    var tmp = '';
+                                    if (chatData != null) {
+                                        tmp += chatData;
+                                    }
+                                    tmp += str;
+                                    sessionStorage.setItem(0 + res.toName, tmp);
+                                    if (this.chatType == 0 && this.chatTitle == res.toName) {
+                                        this.info = tmp;
+                                    }
                                     break;
                             }
                             break;
@@ -410,8 +416,49 @@
                                     break;
                                 case 1:
                                     // 上线通知
-                                    this.info += this.showTip(res.fromName + " 上线了");
+                                    var chatData = sessionStorage.getItem(1 + res.toName);
+                                    var str = this.showTip(res.fromName + " 上线了");
+                                    var tmp = '';
+                                    if (chatData != null) {
+                                        tmp += chatData;
+                                    }
+                                    tmp += str;
+                                    sessionStorage.setItem(1 + res.toName, tmp);
+                                    if (this.chatType == 1 && this.chatTitle == res.toName) {
+                                        this.info = tmp;
+                                    }
                                     break;
+                                case 2:
+                                    // 聊天消息
+                                    var chatData = sessionStorage.getItem(1 + res.toName);
+                                    var str = this.infoToHtml(res.fromName, res.obj);
+                                    var tmp = '';
+                                    if (chatData != null) {
+                                        tmp += chatData;
+                                    }
+                                    tmp += str;
+                                    sessionStorage.setItem(1 + res.toName, tmp);
+                                    if (this.chatType == 1 && this.chatTitle == res.toName) {
+                                        this.info = tmp;
+                                    }
+                                    break;
+                                case 3:
+                                    // 群友离线通知
+                                    var chatData = sessionStorage.getItem(1 + res.toName);
+                                    var str = this.showTip(res.fromName + " 下线了");
+                                    var tmp = '';
+                                    if (chatData != null) {
+                                        tmp += chatData;
+                                    }
+                                    tmp += str;
+                                    sessionStorage.setItem(1 + res.toName, tmp);
+                                    if (this.chatType == 1 && this.chatTitle == res.toName) {
+                                        this.info = tmp;
+                                    }
+                                    var index = this.groupList.indexOf(res.fromName);
+                                    if (index >= 0) {
+                                        this.groupList.splice(index, 1);
+                                    }
                             }
                             break;
                         case 2:
@@ -426,17 +473,51 @@
                                     this.friendList = res.obj;
                                     break;
                                 case 2:
-                                    // 添加在线好友（不重复添加）
+                                    // 添加在线好友（不重复添加）, 待完善
                                     if(this.friendList.indexOf(res.fromName) == -1){
                                         this.friendList.push(res.fromName);
                                     }
                                     break;
+                                case 3:
+                                    // 显示好友发来的聊天信息
+                                    var chatData = sessionStorage.getItem(2 + res.fromName);
+                                    var str = this.infoToHtml(res.fromName, res.obj);
+                                    var tmp = '';
+                                    if (chatData != null) {
+                                        tmp += chatData;
+                                    }
+                                    tmp += str;
+                                    sessionStorage.setItem(2 + res.fromName, tmp);
+                                    if (this.chatType == 2 && this.chatTitle == res.fromName) {
+                                        this.info = tmp;
+                                    }
+                                    break;
+                                case 4:
+                                    // 发送的好友已离线提示
+                                    var chatData = sessionStorage.getItem(2 + res.toName);
+                                    var str = this.showTip(res.toName + " 已下线");
+                                    var tmp = '';
+                                    if (chatData != null) {
+                                        tmp += chatData;
+                                    }
+                                    tmp += str;
+                                    sessionStorage.setItem(2 + res.toName, tmp);
+                                    if (this.chatType == 2 && this.chatTitle == res.toName) {
+                                        this.info = tmp;
+                                    }
+                                    break;
+                                case 5:
+                                    // 好友离线通知
+                                    var index = this.friendList.indexOf(res.fromName)
+                                    if (index >= 0) {
+                                        this.friendList.splice(index, 1);
+                                    }
                             }
                             break;
                     }
                 }
 
-                ws.onclose = () => {
+                this.ws.onclose = () => {
                     this.outConnecting = true;
                 }
             },
@@ -452,6 +533,7 @@
                         this.alertError(res.data.msg);
                     }
                     this.$router.replace("/login")
+                    sessionStorage.clear();
                 }).catch((res) => {
                     this.alertError("网络出现故障，请稍后再尝试！");
                 });
@@ -678,11 +760,13 @@
                 return '<div><span style="color: #F56C6C">' + tip + '</span></div>';
             },
 
-            // 聊天室内的操作
+            // 聊天框内的操作
             handleCommand(command) {
                 if (command == 'close') {
                     this.$refs.elMenu.activeIndex = null;
                     this.chatTitle = '聊天室';
+                    this.chatType = -1;
+                    this.info = '';
                 } else if (command == 'delete') {
                     this.alertSuccess("删除聊天室成功！");
                 }
@@ -691,37 +775,60 @@
             // 聊天室点击事件
             chatInRoom(item) {
                 this.chatTitle = item;
+                this.chatType = 0;
+                this.info = sessionStorage.getItem(this.chatType + this.chatTitle);
+                if (this.info == null) this.info = '';
             },
 
             // 群聊点击事件
             chatInGroup(item) {
                 this.chatTitle = item;
+                this.chatType = 1;
+                this.info = sessionStorage.getItem(this.chatType + this.chatTitle);
+                if (this.info == null) this.info = '';
             },
 
             // 好友点击事件
             chatWithFriend(item) {
                 this.chatTitle = item;
+                this.chatType = 2;
+                this.info = sessionStorage.getItem(this.chatType + this.chatTitle);
+                if (this.info == null) this.info = '';
             },
 
             // 发送聊天信息
             toSend(event) {
                 // 监听回车事件
-                if (!this.shift_flag && event.keyCode == 13) {
-                    this.chat_text = this.chat_text.trim();
-                    if (this.chat_text == '') {
+                if (!this.shiftFlag && event.keyCode == 13) {
+                    if (this.chatType == -1) {
+                        this.alertError("请选择聊天对象！");
+                        return;
+                    }
+                    // 去掉首尾的空格
+                    this.chatText = this.chatText.trim();
+                    if (this.chatText == '') {
                         this.alertError("聊天信息不嫩为空！");
                         return;
                     }
-                    this.info += this.infoToHtml(this.username, this.chat_text.replace(/(\r\n)|(\n)/g,'<br>'));
-                    this.chat_text = '';
+                    var sendMsg = this.chatText.replace(/(\r\n)|(\n)/g,'<br>');
+                    var str = this.infoToHtml(this.username, sendMsg);
+                    // 本地聊天信息添加和保存
+                    this.info += str;
+                    sessionStorage.setItem(this.chatType + this.chatTitle, this.info);
+                    // 清空
+                    this.chatText = '';
+                    // 发送聊天信息
+                    var jsonData = {"type": this.chatType, "toName": this.chatTitle, "obj": sendMsg};
+                    this.ws.send(JSON.stringify(jsonData));
+
                 } else if (event.keyCode == 16) {
-                    this.shift_flag = false;
+                    this.shiftFlag = false;
                 }
             },
 
             // 设置shift标志
             downshift() {
-                this.shift_flag = true;
+                this.shiftFlag = true;
             },
 
             // 判断昵称正确性
