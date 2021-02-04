@@ -303,23 +303,14 @@
                 // 聊天输入框换行的shift标志
                 shift_flag: false,
 
-                // 暂时写死的好友
-                friendList: [
-                    "一二三四五六七八九十",
-                    "李四",
-                    "王五"
-                ],
+                // 好友
+                friendList: [],
 
                 // 群聊列表
                 groupList: [],
 
-                // 暂时写死的聊天室
-                roomList: [
-                    "北京",
-                    "上海",
-                    "广州",
-                    "深圳",
-                ],
+                // 聊天室
+                roomList: [],
                 
                 // 弹窗
                 addFriendDialogVisible: false,
@@ -396,19 +387,52 @@
                     // 获取服务端推送过来的消息，转换成JSON格式
                     var res = JSON.parse(evt.data);
 
-                    if (res.isSystem) {
-                        if (res.type == 2) {
-                            // 好友系统消息
-                            this.friendsTableData = res.list;
-                        } else if (res.type == 1) {
-                            // 群聊系统消息
-                            this.groupList = res.list;
-                        } else if (res.type == 3) {
-                            // 在线好友系统消息
-                            this.friendList = res.list;
-                        }
-                    } else {
-
+                    // 取整，不然可能是小数
+                    var fristType = parseInt(res.type / 10);
+                    var secendType = res.type % 10;
+                    
+                    console.log(res)
+                    switch(fristType) {
+                        case 0:
+                            // 聊天室
+                            switch(secendType) {
+                                case 0:
+                                    this.roomList = res.obj;
+                                    break;
+                            }
+                            break;
+                        case 1:
+                            // 群聊
+                            switch(secendType) {
+                                case 0:
+                                    // 群聊列表
+                                    this.groupList = res.obj;
+                                    break;
+                                case 1:
+                                    // 上线通知
+                                    this.info += this.showTip(res.fromName + " 上线了");
+                                    break;
+                            }
+                            break;
+                        case 2:
+                            // 好友
+                            switch(secendType) {
+                                case 0:
+                                    // 好友列表
+                                    this.friendsTableData = res.obj;
+                                    break;
+                                case 1:
+                                    // 在线好友列表
+                                    this.friendList = res.obj;
+                                    break;
+                                case 2:
+                                    // 添加在线好友（不重复添加）
+                                    if(this.friendList.indexOf(res.fromName) == -1){
+                                        this.friendList.push(res.fromName);
+                                    }
+                                    break;
+                            }
+                            break;
                     }
                 }
 
@@ -651,7 +675,7 @@
             },
 
             showTip(tip) {
-                return '<span style="color: #F56C6C">' + tip + '</span>';
+                return '<div><span style="color: #F56C6C">' + tip + '</span></div>';
             },
 
             // 聊天室内的操作
