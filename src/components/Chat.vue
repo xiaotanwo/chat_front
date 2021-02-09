@@ -368,6 +368,10 @@
 
             // 创建websocket对象并绑定事件
             newWs() {
+                if(typeof(WebSocket) === "undefined"){
+                    alert("您的浏览器不支持socket");
+                    return;
+                }
                 // 创建websocket对象,全局变量
                 this.ws = new WebSocket("ws://localhost/chat");
                 // 给ws绑定事件
@@ -519,6 +523,7 @@
 
                 this.ws.onclose = () => {
                     this.outConnecting = true;
+                    this.ws = null;
                 }
             },
 
@@ -534,6 +539,8 @@
                     }
                     this.$router.replace("/login")
                     sessionStorage.clear();
+                    // 关闭ws
+                    this.ws.close();
                 }).catch((res) => {
                     this.alertError("网络出现故障，请稍后再尝试！");
                 });
