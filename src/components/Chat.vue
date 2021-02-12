@@ -459,10 +459,21 @@
                                     if (this.chatType == 1 && this.chatTitle == res.toName) {
                                         this.info = tmp;
                                     }
-                                    var index = this.groupList.indexOf(res.fromName);
-                                    if (index >= 0) {
-                                        this.groupList.splice(index, 1);
+                                    break;
+                                case 4:
+                                    // 用户加入群聊通知
+                                    var chatData = sessionStorage.getItem(1 + res.toName);
+                                    var str = this.showTip(res.fromName + " 加入了群聊");
+                                    var tmp = '';
+                                    if (chatData != null) {
+                                        tmp += chatData;
                                     }
+                                    tmp += str;
+                                    sessionStorage.setItem(1 + res.toName, tmp);
+                                    if (this.chatType == 1 && this.chatTitle == res.toName) {
+                                        this.info = tmp;
+                                    }
+                                    break;
                             }
                             break;
                         case 2:
@@ -516,6 +527,7 @@
                                     if (index >= 0) {
                                         this.friendList.splice(index, 1);
                                     }
+                                    break;
                             }
                             break;
                     }
