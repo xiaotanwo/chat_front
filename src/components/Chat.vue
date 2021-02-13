@@ -528,6 +528,33 @@
                                         this.friendList.splice(index, 1);
                                     }
                                     break;
+                                case 6:
+                                    // 好友申请通知
+                                    this.friendApplyTableData.push({
+                                        name: res.fromName,
+                                        msg: res.obj
+                                    });
+                                    break;
+                                case 7:
+                                    // 好友申请通过通知
+                                    this.friendList.push(res.fromName);
+                                    this.friendsTableData.push({
+                                        friend: res.fromName
+                                    })
+                                    break;
+                                case 8:
+                                    // 好友删除通知
+                                    var index = -1;
+                                    for (var i=0; i<this.friendsTableData.length; ++i) {
+                                        if (this.friendsTableData[i].friend == res.fromName) {
+                                            index = i;
+                                            break;
+                                        }
+                                    }
+                                    if (index >= 0) {
+                                        this.friendsTableData.splice(index, 1);
+                                    }
+                                    break;
                             }
                             break;
                     }
@@ -541,6 +568,9 @@
 
             // 注销
             logout() {
+                // 关闭ws
+                if (this.ws != null) this.ws.close();
+                // 注销
                 this.$http.get(
                     "http://localhost/user/logout"
                 ).then((res)=>{
@@ -551,8 +581,6 @@
                     }
                     this.$router.replace("/login")
                     sessionStorage.clear();
-                    // 关闭ws
-                    this.ws.close();
                 }).catch((res) => {
                     this.alertError("网络出现故障，请稍后再尝试！");
                 });
