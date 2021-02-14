@@ -474,6 +474,21 @@
                                         this.info = tmp;
                                     }
                                     break;
+                                case 5:
+                                    // 群友退群通知
+                                    var chatData = sessionStorage.getItem(1 + res.toName);
+                                    var str = this.showTip(res.fromName + " 退出了群聊");
+                                    var tmp = '';
+                                    if (chatData != null) {
+                                        tmp += chatData;
+                                    }
+                                    tmp += str;
+                                    sessionStorage.setItem(1 + res.toName, tmp);
+                                    if (this.chatType == 1 && this.chatTitle == res.toName) {
+                                        this.info = tmp;
+                                    }
+                                    console.log("nihhao")
+                                    break;
                             }
                             break;
                         case 2:
@@ -815,7 +830,61 @@
                     this.chatType = -1;
                     this.info = '';
                 } else if (command == 'delete') {
-                    this.alertSuccess("删除聊天室成功！");
+                    if (this.chatType == 1) {
+                        // 群聊删除
+                        this.$http.get(
+                            "http://localhost/groupMember/delete/" + this.chatTitle,
+                        ).then((res)=>{
+                            if (res.data.ret) {
+                                var index = this.groupList.indexOf(this.chatTitle)
+                                if (index >= 0) {
+                                    this.groupList.splice(index, 1);
+                                }
+                                this.alertSuccess("群聊删除成功！");
+                                this.$refs.elMenu.activeIndex = null;
+                                this.chatTitle = '聊天室';
+                                this.chatType = -1;
+                                this.info = '';
+                            } else {
+                                this.alertError(res.data.msg);
+                            }
+                        }).catch((res) => {
+                            this.alertError("网络出现故障，请稍后再尝试！");
+                        });
+                    } else if (this.chatType == 2) {
+                        // 好友删除
+                        this.$http.get(
+                            "http://localhost/friend/delete/" + this.chatTitle,
+                        ).then((res)=>{
+                            if (res.data.ret) {
+                                var index = this.friendList.indexOf(this.chatTitle)
+                                if (index >= 0) {
+                                    this.friendList.splice(index, 1);
+                                }
+                                index = -1;
+                                for (var i=0; i<this.friendsTableData.length; ++i) {
+                                    if (this.friendsTableData[i].friend == this.chatTitle) {
+                                        index = i;
+                                        break;
+                                    }
+                                }
+                                if (index >= 0) {
+                                    this.friendsTableData.splice(index, 1);
+                                }
+                                this.alertSuccess("好友删除成功！");
+                                this.$refs.elMenu.activeIndex = null;
+                                this.chatTitle = '聊天室';
+                                this.chatType = -1;
+                                this.info = '';
+                            } else {
+                                this.alertError(res.data.msg);
+                            }
+                        }).catch((res) => {
+                            this.alertError("网络出现故障，请稍后再尝试！");
+                        });
+                    } else {
+                        this.alertError("不能对此页面进行删除！");
+                    }
                 }
             },
 
