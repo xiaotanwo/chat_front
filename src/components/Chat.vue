@@ -133,7 +133,7 @@
         <el-row :gutter="20">
             <el-col :span="16" :offset="4">
                 <el-container style="height: 700px; background-color: #2C3E50; opacity: 0.9">
-                    <el-container style="height: 100%; width: 250px">
+                    <el-container style="height: 100%; width: 260px">
                         <!-- 文字头像 -->
                         <el-header>
                              <Avatar
@@ -167,7 +167,7 @@
                                             <i class="el-icon-s-home" style="color: #67C23A"></i>
                                             <span>聊天室</span>
                                         </template>
-                                        <el-menu-item 
+                                        <el-menu-item
                                             :index="('1-' + index)"
                                             v-for="(item,index) in roomList" :key="index"
                                             @click="chatInRoom(item)">
@@ -229,7 +229,7 @@
                         </el-header>
                         
                         <!-- 聊天信息框 -->
-                        <el-main style="padding: 5px 10px;" id="scrollDiv">
+                        <el-main style="margin: 5px 10px;" id="scrollDiv">
                             <div v-html="info">
                             </div>
                         </el-main>
@@ -311,8 +311,22 @@
                 // 群聊列表
                 groupList: [],
 
-                // 聊天室
-                roomList: [],
+                // 聊天室，测试数据
+                roomList: [
+                    '一二三四五六七八九十',
+                    '北京',
+                    '上海',
+                    '广州',
+                    '深圳',
+                    '北京',
+                    '上海',
+                    '广州',
+                    '深圳',
+                    '北京',
+                    '上海',
+                    '广州',
+                    '深圳',
+                ],
                 
                 // 弹窗
                 addFriendDialogVisible: false,

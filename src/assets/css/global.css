@@ -1,10 +1,6 @@
 /* 全局定义 */
 
-/* chrome浏览器隐藏滑动条，其他的浏览器就算了，前端从入门到放弃 */
-.el-main::-webkit-scrollbar {
-    display: none;
-}
-
+/* 滑动条宽度设置 */
 ::-webkit-scrollbar 
 { 
     width: 5px;
@@ -12,7 +8,7 @@
 
 /*定义滚动条轨道 内阴影+圆角*/
 ::-webkit-scrollbar-track 
-{ 
+{
     border-radius: 10px; 
     background-color: rgba(0,0,0,0.1); 
 } 
