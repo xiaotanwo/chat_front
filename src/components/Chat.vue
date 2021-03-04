@@ -271,6 +271,17 @@
 
             // 初始化websocket
             this.initWebpack();
+
+            // 每30秒进行一次请求，更新后台session存活时间
+            var _this = this;
+            setInterval(function () {
+                // 空请求
+                _this.$http.get(
+                    "http://localhost/updateSession",
+                ).then((res)=>{
+                    // console.log("更新成功！");
+                });
+            }, 30000);
         },
 
         // 待完善
@@ -440,7 +451,7 @@
                     // 连接正常，可以通讯的状态 1
                     if (self.ws.readyState == 1) {
                         self.ws.send("ping");
-                        console.log("?")
+                        // console.log("?")
                     } else {
                         // 重连
                         self.reconnect();
@@ -466,7 +477,7 @@
                 this.reset();
                 // 心跳返回
                 if (evt.data == "pang") {
-                    console.log("!")
+                    // console.log("!")
                     return ;
                 }
                 // 获取服务端推送过来的消息，转换成JSON格式
