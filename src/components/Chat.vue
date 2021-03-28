@@ -274,7 +274,7 @@
 
             // 每30秒进行一次请求，更新后台session存活时间
             var _this = this;
-            setInterval(function () {
+            this.updatetimer = setInterval(function () {
                 // 空请求
                 _this.$http.get(
                     "http://localhost/updateSession",
@@ -379,6 +379,8 @@
                 timeoutnum: null, // 断开 重连倒计时
 
                 logout_flag: false, // 退出标志
+
+                updatetimer: null, // 更新
             }
         },
 
@@ -488,15 +490,15 @@
                 var secendType = res.type % 10;
                 
                 switch(fristType) {
+                    // 聊天室
                     case 0:
-                        // 聊天室
                         switch(secendType) {
+                            // 聊天列表
                             case 0:
-                                // 聊天列表
                                 this.roomList = res.obj;
                                 break;
+                            // 聊天消息
                             case 1:
-                                // 聊天消息
                                 var chatData = sessionStorage.getItem(0 + res.toName);
                                 var str = this.infoToHtml(res.fromName, res.obj);
                                 var tmp = '';
@@ -511,15 +513,15 @@
                                 break;
                         }
                         break;
+                    // 群聊
                     case 1:
-                        // 群聊
                         switch(secendType) {
+                            // 群聊列表
                             case 0:
-                                // 群聊列表
                                 this.groupList = res.obj;
                                 break;
+                            // 上线通知
                             case 1:
-                                // 上线通知
                                 var chatData = sessionStorage.getItem(1 + res.toName);
                                 var str = this.showTip(res.fromName + " 上线了");
                                 var tmp = '';
@@ -532,8 +534,8 @@
                                     this.info = tmp;
                                 }
                                 break;
+                            // 聊天消息
                             case 2:
-                                // 聊天消息
                                 var chatData = sessionStorage.getItem(1 + res.toName);
                                 var str = this.infoToHtml(res.fromName, res.obj);
                                 var tmp = '';
@@ -546,8 +548,8 @@
                                     this.info = tmp;
                                 }
                                 break;
+                            // 群友离线通知
                             case 3:
-                                // 群友离线通知
                                 var chatData = sessionStorage.getItem(1 + res.toName);
                                 var str = this.showTip(res.fromName + " 下线了");
                                 var tmp = '';
@@ -560,8 +562,8 @@
                                     this.info = tmp;
                                 }
                                 break;
+                            // 用户加入群聊通知
                             case 4:
-                                // 用户加入群聊通知
                                 var chatData = sessionStorage.getItem(1 + res.toName);
                                 var str = this.showTip(res.fromName + " 加入了群聊");
                                 var tmp = '';
@@ -574,8 +576,8 @@
                                     this.info = tmp;
                                 }
                                 break;
+                            // 群友退群通知
                             case 5:
-                                // 群友退群通知
                                 var chatData = sessionStorage.getItem(1 + res.toName);
                                 var str = this.showTip(res.fromName + " 退出了群聊");
                                 var tmp = '';
@@ -591,25 +593,25 @@
                                 break;
                         }
                         break;
+                    // 好友
                     case 2:
-                        // 好友
                         switch(secendType) {
+                            // 好友列表
                             case 0:
-                                // 好友列表
                                 this.friendsTableData = res.obj;
                                 break;
+                            // 在线好友列表
                             case 1:
-                                // 在线好友列表
                                 this.friendList = res.obj;
                                 break;
+                            // 添加在线好友（不重复添加）
                             case 2:
-                                // 添加在线好友（不重复添加）, 待完善
                                 if(this.friendList.indexOf(res.fromName) == -1){
                                     this.friendList.push(res.fromName);
                                 }
                                 break;
+                            // 显示好友发来的聊天信息
                             case 3:
-                                // 显示好友发来的聊天信息
                                 var chatData = sessionStorage.getItem(2 + res.fromName);
                                 var str = this.infoToHtml(res.fromName, res.obj);
                                 var tmp = '';
@@ -622,8 +624,8 @@
                                     this.info = tmp;
                                 }
                                 break;
+                            // 发送的好友已离线提示
                             case 4:
-                                // 发送的好友已离线提示
                                 var chatData = sessionStorage.getItem(2 + res.toName);
                                 var str = this.showTip(res.toName + " 已下线");
                                 var tmp = '';
@@ -636,29 +638,29 @@
                                     this.info = tmp;
                                 }
                                 break;
+                            // 好友离线通知
                             case 5:
-                                // 好友离线通知
                                 var index = this.friendList.indexOf(res.fromName)
                                 if (index >= 0) {
                                     this.friendList.splice(index, 1);
                                 }
                                 break;
+                            // 好友申请通知
                             case 6:
-                                // 好友申请通知
                                 this.friendApplyTableData.push({
                                     name: res.fromName,
                                     msg: res.obj
                                 });
                                 break;
+                            // 好友申请通过通知
                             case 7:
-                                // 好友申请通过通知
                                 this.friendList.push(res.fromName);
                                 this.friendsTableData.push({
                                     friend: res.fromName
                                 })
                                 break;
+                            // 好友删除通知
                             case 8:
-                                // 好友删除通知
                                 var index = -1;
                                 for (var i=0; i<this.friendsTableData.length; ++i) {
                                     if (this.friendsTableData[i].friend == res.fromName) {
@@ -713,8 +715,9 @@
                     } else {
                         this.alertError(res.data.msg);
                     }
-                    this.$router.replace("/login")
                     sessionStorage.clear();
+                    this.updatetimer && clearTimeout(this.updatetimer);
+                    this.$router.replace("/login");
                 }).catch((res) => {
                     this.alertError("网络出现故障，请稍后再尝试！");
                 });
