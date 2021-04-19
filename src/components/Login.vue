@@ -10,7 +10,7 @@
 
         <el-row :gutter="20">
             <el-col :span="8" :offset="8">
-                <div class="grid-content" style="opacity: 0.9">
+                <div class="grid-content" style="background-color: rgb(179, 216, 255)">
                     <!-- 扩展上边界 -->
                     <el-row :gutter="20">
                         <el-col :span="8" :offset="8">
@@ -22,7 +22,7 @@
                     <el-row :gutter="20">
                         <el-col :span="20" :offset="2">
                             <div class="grid-content">
-                                <h1 style="color:#409EFF">
+                                <h1>
                                     聊天室 —— 登录
                                 </h1>
                             </div>

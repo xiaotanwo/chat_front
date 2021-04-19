@@ -131,23 +131,22 @@
         </el-row>
         
         <el-row :gutter="20">
-            <el-col :span="16" :offset="4">
-                <el-container style="height: 700px; background-color: #2C3E50; opacity: 0.9">
+            <el-col :span="16" :offset="4"  style="border:1px solid">
+                <el-container style="height: 700px; opacity: 0.9">
                     <el-container style="height: 100%; width: 260px">
                         <!-- 文字头像 -->
                         <el-header>
                              <Avatar
                                 :username="headname"
-                                background-color="#606266"
-                                color="#67C23A"
+                                background-color=#DCDFE6
+                                color=black
                                 style="vertical-align: middle;"
                                 :inline="true">
                             </Avatar>
                             <!-- 离线时显示 -->
                             <el-tag
                                 v-if="outConnecting"
-                                type="danger"
-                                style="background-color: transparent; border: 0;">
+                                style="border: 0; color: #F56C6C; font-size: 17px; margin: 0 auto;">
                                 --离线中--
                             </el-tag>
                         </el-header>
@@ -157,14 +156,14 @@
                                 <el-menu ref="elMenu"
                                     default-active="2"
                                     class="el-menu-vertical-demo"
-                                    background-color="#545c64"
-                                    text-color="#409EFF"
-                                    active-text-color="#ffd04b"
+                                    
+                                    text-color=black
+                                    active-text-color="#F56C6C"
                                     :unique-opened=true
                                     style="text-align: left; border-right: 0">
                                     <el-submenu index="1">
                                         <template slot="title">
-                                            <i class="el-icon-s-home" style="color: #67C23A"></i>
+                                            <i class="el-icon-s-home" style="color: #F56C6C"></i>
                                             <span>聊天室</span>
                                         </template>
                                         <el-menu-item
@@ -177,11 +176,11 @@
                                     
                                     <el-submenu index="2">
                                         <template slot="title">
-                                            <i class="el-icon-star-on" style="color: #67C23A"></i>
+                                            <i class="el-icon-star-on" style="color: #F56C6C"></i>
                                             <span>群聊</span>
                                         </template>
-                                        <el-menu-item style="color: #67C23A" @click="newGroupDialogVisible = true">新建群聊</el-menu-item>
-                                        <el-menu-item style="color: #67C23A" @click="joinGroupDialogVisible = true">加入群聊</el-menu-item>
+                                        <el-menu-item style="color: #409EFF" @click="newGroupDialogVisible = true">新建群聊</el-menu-item>
+                                        <el-menu-item style="color: #409EFF" @click="joinGroupDialogVisible = true">加入群聊</el-menu-item>
                                         <el-menu-item 
                                             :index="('2-' + index)"
                                             v-for="(item,index) in groupList" :key="index"
@@ -192,12 +191,12 @@
 
                                     <el-submenu index="3">
                                         <template slot="title">
-                                            <i class="el-icon-user-solid" style="color: #67C23A"></i>
+                                            <i class="el-icon-user-solid" style="color: #F56C6C"></i>
                                             <span>好友</span>
                                         </template>
-                                        <el-menu-item style="color: #67C23A" @click="addFriendDialogVisible = true">添加好友</el-menu-item>
-                                        <el-menu-item style="color: #67C23A" @click="friendApplyDialogVisible = true">好友申请</el-menu-item>
-                                        <el-menu-item style="color: #67C23A" @click="friendsDialogVisible = true;">好友列表</el-menu-item>
+                                        <el-menu-item style="color: #409EFF" @click="addFriendDialogVisible = true">添加好友</el-menu-item>
+                                        <el-menu-item style="color: #409EFF" @click="friendApplyDialogVisible = true">好友申请</el-menu-item>
+                                        <el-menu-item style="color: #409EFF" @click="friendsDialogVisible = true;">好友列表</el-menu-item>
                                         <el-menu-item 
                                             :index="('3-' + index)"
                                             v-for="(item,index) in friendList" :key="index"
@@ -218,12 +217,12 @@
                         <!-- 聊天室名称 -->
                         <el-header style="text-align: center;">
                             <el-dropdown @command="handleCommand">
-                                <span class="el-dropdown-link" style="color: #67C23A; font-size: 20px;">
+                                <span class="el-dropdown-link" style="color: #F56C6C; font-size: 20px;">
                                     {{chatTitle}}<i class="el-icon-arrow-down el-icon--right"></i>
                                 </span>
-                                <el-dropdown-menu slot="dropdown">
-                                    <el-dropdown-item icon="el-icon-error" command="close" style="color: #67C23A">关闭</el-dropdown-item>
-                                    <el-dropdown-item icon="el-icon-delete-solid" command="delete" style="color: #67C23A">删除</el-dropdown-item>
+                                <el-dropdown-menu slot="dropdown" style="background-color: Gainsboro">
+                                    <el-dropdown-item icon="el-icon-error" command="close" style="color: #F56C6C">关闭</el-dropdown-item>
+                                    <el-dropdown-item icon="el-icon-delete-solid" command="delete" style="color: #F56C6C">删除</el-dropdown-item>
                                 </el-dropdown-menu>
                             </el-dropdown>
                         </el-header>
@@ -369,7 +368,7 @@
 
                 // 显示的聊天信息
                 info: '',
-
+ 
                 // websocket对象
                 ws: null, // 建立的连接
                 lockReconnect: false, // 是否真正建立连接
@@ -500,7 +499,7 @@
                             // 聊天消息
                             case 1:
                                 var chatData = sessionStorage.getItem(0 + res.toName);
-                                var str = this.infoToHtml(res.fromName, res.obj);
+                                var str = this.infoToHtml(res.fromName, 0, res.obj);
                                 var tmp = '';
                                 if (chatData != null) {
                                     tmp += chatData;
@@ -537,7 +536,7 @@
                             // 聊天消息
                             case 2:
                                 var chatData = sessionStorage.getItem(1 + res.toName);
-                                var str = this.infoToHtml(res.fromName, res.obj);
+                                var str = this.infoToHtml(res.fromName, 0, res.obj);
                                 var tmp = '';
                                 if (chatData != null) {
                                     tmp += chatData;
@@ -613,7 +612,7 @@
                             // 显示好友发来的聊天信息
                             case 3:
                                 var chatData = sessionStorage.getItem(2 + res.fromName);
-                                var str = this.infoToHtml(res.fromName, res.obj);
+                                var str = this.infoToHtml(res.fromName, 0, res.obj);
                                 var tmp = '';
                                 if (chatData != null) {
                                     tmp += chatData;
@@ -915,29 +914,51 @@
             },
 
             // 头像的html
-            getAvatar(name, col) {
-                return '<div style="margin: 0 0 10px 0"><div aria-hidden="true" class="vue-avatar--wrapper" style="display: inline-flex; width: 50px; height: 50px; border-radius: 50%; font: 20px / 50px Helvetica, Arial, sans-serif; align-items: center; justify-content: center; text-align: center; user-select: none; background-color: rgb(96, 98, 102); color: ' + col + '; vertical-align: middle;"><span>' + name.substring(0,2) + '</span></div></div>'
+            getAvatar(name) {
+                return '<div style="margin: 0 0 10px 0"><div aria-hidden="true" class="vue-avatar--wrapper" style="display: inline-flex; width: 50px; height: 50px; border-radius: 50%; font: 20px / 50px Helvetica, Arial, sans-serif; align-items: center; justify-content: center; text-align: center; user-select: none; background-color: #DCDFE6; vertical-align: middle;"><span>' + name.substring(0,2) + '</span></div></div>'
             },
 
             // msg的html
-            getMsg(msg, dir, col) {
-                return  "<div style='color: " + col + "; text-align: " + dir + "; padding: 3px; margin: 3px'>" +
+            getMsg(msg, dir) {
+                return  "<div style='text-align: " + dir + "; padding: 3px; margin: 3px'>" +
                             msg +
                         "</div>"
             },
 
+            // img的html
+            getImg(src, dir) {
+                return  "<div style='text-align: " + dir + "; padding: 3px; margin: 3px'>" +
+                            '<img height="120px" src="' + src + '" />' + 
+                        "</div>"
+            },
+
             // 聊天信息转成html进行插入
-            infoToHtml(name, msg) {
+            infoToHtml(name, type, msg) {
+                let tmp = "";
                 // 自己发送的，右边
                 if (name == this.username) {
-                    return "<div style='margin: 2px 5px 2px 52px; display: flex; justify-content: flex-end; align-items: flex-start;'>" +
-                                this.getMsg(msg, "right", "#67C23A") + this.getAvatar(name, "#67C23A") +
-                            "</div>"
+                    // 文字
+                    tmp = "<div style='margin: 2px 5px 2px 52px; display: flex; justify-content: flex-end; align-items: flex-start;'>";
+                    // 0 : 文字消息
+                    if (type == 0) {
+                        tmp += this.getMsg(msg, "right");
+                    } else { // 1 ：图片消息
+                        tmp += this.getImg(msg, "right");
+                    }
+                    tmp += this.getAvatar(name) + "</div>";
+                    // 图片
                 } else { // 别人发送的，左边
-                    return "<div style='margin: 2px 52px 2px 5px ; display: flex; justify-content: flex-start; align-items: flex-start;'>" +
-                                this.getAvatar(name, "#E6A23C") + this.getMsg(msg, "left", "#E6A23C") +
-                            "</div>"
+                    tmp = "<div style='margin: 2px 52px 2px 5px ; display: flex; justify-content: flex-start; align-items: flex-start;'>" +
+                            this.getAvatar(name);
+                    // 0 : 文字消息
+                    if (type == 0) {
+                        tmp += this.getMsg(msg, "left");
+                    } else { // 1 ：图片消息
+                        tmp += this.getImg(msg, "left");
+                    }
+                    tmp  += "</div>";
                 }
+                return tmp;
             },
 
             // 聊天通知的显示
@@ -1037,6 +1058,11 @@
 
             // 发送聊天信息
             toSend(event) {
+                let xt = "http://www.shijuepi.com/uploads/allimg/200918/1-20091Q10420.jpg";
+                this.info += this.infoToHtml("张三", 1, xt);
+                this.info += this.infoToHtml("李四", 1, xt);
+                this.info += this.infoToHtml("笑谈", 1, xt);
+                return ;
                 // 监听回车事件
                 if (!this.shiftFlag && event.keyCode == 13) {
                     if (this.chatType == -1) {
@@ -1055,7 +1081,7 @@
                         return;
                     }
                     var sendMsg = this.chatText.replace(/(\r\n)|(\n)/g,'<br>');
-                    var str = this.infoToHtml(this.username, sendMsg);
+                    var str = this.infoToHtml(this.username, 0, sendMsg);
                     // 本地聊天信息添加和保存
                     this.info += str;
                     sessionStorage.setItem(this.chatType + this.chatTitle, this.info);
@@ -1064,7 +1090,6 @@
                     // 发送聊天信息
                     var jsonData = {"type": this.chatType, "toName": this.chatTitle, "obj": sendMsg};
                     this.ws.send(JSON.stringify(jsonData));
-
                 } else if (event.keyCode == 16) {
                     this.shiftFlag = false;
                 }
