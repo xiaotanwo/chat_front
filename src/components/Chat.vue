@@ -235,16 +235,31 @@
 
                         <!-- 发送框 -->
                         <el-footer style="height: 130px; padding: 5px 10px;">
-                            <el-input
-                                maxlength=300
-                                @keyup.native="toSend($event)"
-                                @keydown.shift.native="downshift"
-                                resize="none"
-                                type="textarea"
-                                :rows="5"
-                                placeholder="请输入聊天内容。 Enter 发送，Shift + Enter 换行"
-                                v-model="chatText">
-                            </el-input>
+                            <el-row>
+                                <el-col :span="22">
+                                    <el-input
+                                        maxlength=300
+                                        @keyup.native="toSend($event)"
+                                        @keydown.shift.native="downshift"
+                                        resize="none"
+                                        type="textarea"
+                                        :rows="5"
+                                        placeholder="请输入聊天内容。 Enter 发送，Shift + Enter 换行"
+                                        v-model="chatText">
+                                    </el-input>
+                                </el-col>
+                                <el-col :span="2">
+                                    <el-upload
+                                        action="http://localhost/picture/upload"
+                                        :show-file-list="false"
+                                        :on-success="handlePictureSuccess"
+                                        :before-upload="beforePictureUpload"
+                                        :data="pictureData"
+                                        :with-credentials='true'>
+                                        <el-button type="primary" icon="el-icon-picture-outline" circle></el-button>
+                                    </el-upload>
+                                </el-col>
+                            </el-row>
                         </el-footer>
                     </el-container>
                 </el-container>
@@ -380,6 +395,12 @@
                 logout_flag: false, // 退出标志
 
                 updatetimer: null, // 更新
+
+                // 图片信息：类型和接收者
+                pictureData: {
+                    msgType: -1,
+                    msgToName: '',
+                },
             }
         },
 
@@ -510,6 +531,20 @@
                                     this.info = tmp;
                                 }
                                 break;
+                            // 聊天图片
+                            case 2:
+                                var chatData = sessionStorage.getItem(0 + res.toName);
+                                var str = this.infoToHtml(res.fromName, 1, res.obj);
+                                var tmp = '';
+                                if (chatData != null) {
+                                    tmp += chatData;
+                                }
+                                tmp += str;
+                                sessionStorage.setItem(0 + res.toName, tmp);
+                                if (this.chatType == 0 && this.chatTitle == res.toName) {
+                                    this.info = tmp;
+                                }
+                                break;
                         }
                         break;
                     // 群聊
@@ -590,6 +625,20 @@
                                 }
                                 console.log("nihhao")
                                 break;
+                            // 群聊图片
+                            case 6:
+                                var chatData = sessionStorage.getItem(1 + res.toName);
+                                var str = this.infoToHtml(res.fromName, 1, res.obj);
+                                var tmp = '';
+                                if (chatData != null) {
+                                    tmp += chatData;
+                                }
+                                tmp += str;
+                                sessionStorage.setItem(1 + res.toName, tmp);
+                                if (this.chatType == 1 && this.chatTitle == res.toName) {
+                                    this.info = tmp;
+                                }
+                                break;
                         }
                         break;
                     // 好友
@@ -669,6 +718,33 @@
                                 }
                                 if (index >= 0) {
                                     this.friendsTableData.splice(index, 1);
+                                }
+                                break;
+                            // 私聊图片
+                            case 9:
+                                // 来自自己
+                                var chatData = '';
+                                if (this.username == res.fromName) {
+                                    chatData = sessionStorage.getItem(2 + res.toName);
+                                } else { // 来自对方
+                                    chatData = sessionStorage.getItem(2 + res.fromName);
+                                }
+                                var str = this.infoToHtml(res.fromName, 1, res.obj);
+                                var tmp = '';
+                                if (chatData != null) {
+                                    tmp += chatData;
+                                }
+                                tmp += str;
+                                if (this.username == res.fromName) {
+                                    sessionStorage.setItem(2 + res.toName, tmp);
+                                    if (this.chatType == 2 && this.chatTitle == res.toName) {
+                                        this.info = tmp;
+                                    }
+                                } else {
+                                    sessionStorage.setItem(2 + res.fromName, tmp);
+                                    if (this.chatType == 2 && this.chatTitle == res.fromName) {
+                                        this.info = tmp;
+                                    }
                                 }
                                 break;
                         }
@@ -926,9 +1002,9 @@
             },
 
             // img的html
-            getImg(src, dir) {
+            getImg(url, dir) {
                 return  "<div style='text-align: " + dir + "; padding: 3px; margin: 3px'>" +
-                            '<img height="120px" src="' + src + '" />' + 
+                            '<img height="120px" src="http://localhost/img/' + url + '" />' + 
                         "</div>"
             },
 
@@ -969,10 +1045,14 @@
             // 聊天框内的操作
             handleCommand(command) {
                 if (command == 'close') {
+                    // 初始化
                     this.$refs.elMenu.activeIndex = null;
                     this.chatTitle = '聊天室';
                     this.chatType = -1;
                     this.info = '';
+                    // 初始化图片信息
+                    this.pictureData.msgType = -1;
+                    this.pictureData.msgToName = '';
                 } else if (command == 'delete') {
                     if (this.chatType == 1) {
                         // 群聊删除
@@ -985,10 +1065,15 @@
                                     this.groupList.splice(index, 1);
                                 }
                                 this.alertSuccess("群聊删除成功！");
+                                // 初始化
                                 this.$refs.elMenu.activeIndex = null;
                                 this.chatTitle = '聊天室';
                                 this.chatType = -1;
                                 this.info = '';
+
+                                // 初始化图片信息
+                                this.pictureData.msgType = -1;
+                                this.pictureData.msgToName = '';
                             } else {
                                 this.alertError(res.data.msg);
                             }
@@ -1016,10 +1101,15 @@
                                     this.friendsTableData.splice(index, 1);
                                 }
                                 this.alertSuccess("好友删除成功！");
+                                // 初始化
                                 this.$refs.elMenu.activeIndex = null;
                                 this.chatTitle = '聊天室';
                                 this.chatType = -1;
                                 this.info = '';
+
+                                // 初始化图片信息
+                                this.pictureData.msgType = -1;
+                                this.pictureData.msgToName = '';
                             } else {
                                 this.alertError(res.data.msg);
                             }
@@ -1038,6 +1128,10 @@
                 this.chatType = 0;
                 this.info = sessionStorage.getItem(this.chatType + this.chatTitle);
                 if (this.info == null) this.info = '';
+
+                // 设置图片信息
+                this.pictureData.msgType = 0;
+                this.pictureData.msgToName = item;
             },
 
             // 群聊点击事件
@@ -1046,6 +1140,10 @@
                 this.chatType = 1;
                 this.info = sessionStorage.getItem(this.chatType + this.chatTitle);
                 if (this.info == null) this.info = '';
+
+                // 设置图片信息
+                this.pictureData.msgType = 1;
+                this.pictureData.msgToName = item;
             },
 
             // 好友点击事件
@@ -1054,15 +1152,14 @@
                 this.chatType = 2;
                 this.info = sessionStorage.getItem(this.chatType + this.chatTitle);
                 if (this.info == null) this.info = '';
+
+                // 设置图片信息
+                this.pictureData.msgType = 2;
+                this.pictureData.msgToName = item;
             },
 
             // 发送聊天信息
             toSend(event) {
-                let xt = "http://www.shijuepi.com/uploads/allimg/200918/1-20091Q10420.jpg";
-                this.info += this.infoToHtml("张三", 1, xt);
-                this.info += this.infoToHtml("李四", 1, xt);
-                this.info += this.infoToHtml("笑谈", 1, xt);
-                return ;
                 // 监听回车事件
                 if (!this.shiftFlag && event.keyCode == 13) {
                     if (this.chatType == -1) {
@@ -1093,6 +1190,29 @@
                 } else if (event.keyCode == 16) {
                     this.shiftFlag = false;
                 }
+            },
+
+            // 上传图片完成的提示
+            handlePictureSuccess(res, file) {
+                if (res.ret) {
+                    this.alertSuccess(res.msg);
+                } else {
+                    this.alertError(res.msg);
+                }
+            },
+
+            // 上传图片前的验证
+            beforePictureUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 1;
+
+                if (!isJPG) {
+                this.alertError('发送图片只能是 JPG 格式!');
+                }
+                if (!isLt2M) {
+                this.alertError('发送图片大小不能超过 1MB!');
+                }
+                return isJPG && isLt2M;
             },
 
             // 设置shift标志
